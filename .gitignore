@@ -1,0 +1,7 @@
+src/intTest/resources/rds-instance.properties
+
+# Project exclude paths
+/.gradle/
+/build/
+/build/classes/java/intTest/
+/build/classes/java/main/

@@ -1,0 +1,61 @@
+package com.duncpro.rds.data.impl;
+
+import com.duncpro.rds.data.StatementBuilder;
+import com.duncpro.rds.data.AsyncDatabase;
+import com.duncpro.rds.data.AsyncDatabaseTransaction;
+import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
+import software.amazon.awssdk.services.rdsdata.RdsDataClient;
+import software.amazon.awssdk.services.rdsdata.model.BeginTransactionRequest;
+import software.amazon.awssdk.services.rdsdata.model.BeginTransactionResponse;
+
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
+
+/**
+ * Exposes {@link RdsDataClient} as an {@link AsyncDatabase}.
+ */
+@ThreadSafe
+public class AmazonRDSAsyncDatabaseWrapper implements AsyncDatabase {
+    final RdsDataAsyncClient rdsDataClient;
+    final String databaseArn;
+    final String databaseSecretArn;
+    final ExecutorService transactionExecutor;
+
+    /**
+     * @param rdsDataClient the {@link RdsDataAsyncClient} client which will be used to communicate with AWS.
+     * @param databaseArn the ARN of the AWS RDS Database Cluster to connect to.
+     * @param databaseSecretArn the ARN of the AWS SecretsManager Secret which contains the credentials for this database.
+     * @param transactionExecutor the {@link ExecutorService} which all transaction tasks will be run on.
+     */
+    public AmazonRDSAsyncDatabaseWrapper(RdsDataAsyncClient rdsDataClient, String databaseArn,
+                                         String databaseSecretArn, ExecutorService transactionExecutor) {
+        this.rdsDataClient = rdsDataClient;
+        this.databaseArn = databaseArn;
+        this.databaseSecretArn = databaseSecretArn;
+        this.transactionExecutor = transactionExecutor;
+    }
+
+    private CompletableFuture<AsyncDatabaseTransaction> startTransaction() {
+        final var request = BeginTransactionRequest.builder()
+                .secretArn(databaseSecretArn)
+                .resourceArn(databaseArn)
+                .build();
+
+        return rdsDataClient.beginTransaction(request)
+                .thenApply(BeginTransactionResponse::transactionId)
+                .thenApply(transactionId -> new AmazonRDSTransaction(this, transactionId));
+    }
+
+    @Override
+    public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
+        return startTransaction()
+                .thenApplyAsync(procedure, transactionExecutor);
+    }
+
+    @Override
+    public StatementBuilder prepareStatement(String parameterizedSQL) {
+        return new AmazonRDSStatementBuilder(this, parameterizedSQL, null);
+    }
+}
