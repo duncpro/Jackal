@@ -1,7 +1,7 @@
 # Amazon RDS Data API Wrapper
 ![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)
 
-Wrapper around RDS Data API (AWS SDK v2) inspired by the minimalistic standard JDBC API.
+Wrapper around RDS Data API (AWS SDK v2) inspired by the standard JDBC API.
 
 ## Getting Started
 ```java
@@ -67,3 +67,7 @@ The official [Official Data API Client Library](https://github.com/awslabs/rds-d
       - JDBC-like Syntax: `SELECT * FROM table_a WHERE column_a = ?;`
   - It only exposes concrete types so there is no easy way to Mock
     the API.
+    
+
+## DTO
+Mapping results to Java objects is outside the scope of this project.
