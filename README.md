@@ -1,7 +1,7 @@
 # Amazon RDS Data API Wrapper
 ![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)
 
-Small wrapper around RDS Data API (AWS SDK v2).
+Wrapper around RDS Data API (AWS SDK v2) inspired by the minimalistic standard JDBC API.
 
 ## Getting Started
 ```java
@@ -54,3 +54,16 @@ which encapsulates the return value of the callback function.
 ## Gotchas
 - Unlike in JDBC, indexes for statement parameters start at `0` not `1`.
 - Only numerical, boolean, and varchar data types are supported.
+- This library has a transitive dependency on the AWS Java SDK v2.
+
+## Motivations
+The official [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
+  lacking in a few key categories.
+  - It has a dependency on AWS SDK v1 and can not support
+    CompletableFuture. 
+  - The parameterization syntax is too verbose, whereas the original JDBC
+    syntax is much more concise.
+      - AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
+      - JDBC-like Syntax: `SELECT * FROM table_a WHERE column_a = ?;`
+  - It only exposes concrete types so there is no easy way to Mock
+    the API.
