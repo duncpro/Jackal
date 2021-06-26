@@ -59,7 +59,7 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
                 .thenApply(Collection::stream);
 
         return StreamUtil.unwrapStream(resultStreamFuture)
-                .map(QueryResultRow::fromMap)
+                .map(QueryResultRow::fromMap);
     }
 
     @Override
