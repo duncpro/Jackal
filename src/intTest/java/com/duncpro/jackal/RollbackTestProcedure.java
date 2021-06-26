@@ -22,7 +22,11 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
 
         db.runTransactionAsync(t -> {
             t.prepareStatement("DELETE from dogs WHERE name = ?;")
-                    .setString(0, "Cocoa");
+                    .setString(0, "Cocoa")
+                    .executeUpdate()
+                    .join();
+
+
             t.rollback().join();
             return null;
         }).join();
