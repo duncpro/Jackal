@@ -2,6 +2,7 @@ package com.duncpro.jackal.jdbc;
 
 import com.duncpro.jackal.CreatePeopleTransaction;
 import org.apache.commons.dbcp2.BasicDataSource;
+import org.intellij.lang.annotations.Language;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
