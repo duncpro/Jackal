@@ -12,7 +12,7 @@ final AsyncDatabase db = new AmazonRDSAsyncDatabaseWrapper(/* */);
 ### Fully embraces Java 8's CompletableFuture
 All updates return `CompletableFuture` and all queries return `Stream`.
 ```java
-asyncDb.prepareStatement("SELECT * FROM person")
+db.prepareStatement("SELECT * FROM person")
         .executeQuery()
         .map(row -> row.getString("first_name"))
         .collect(Collectors.toSet());
