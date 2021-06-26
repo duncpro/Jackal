@@ -3,13 +3,10 @@ package com.duncpro.jackal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.System.arraycopy;
 import static java.util.stream.Collectors.*;
 
 public abstract class StatementBuilderBase implements StatementBuilder {

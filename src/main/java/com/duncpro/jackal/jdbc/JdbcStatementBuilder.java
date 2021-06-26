@@ -49,17 +49,6 @@ class JdbcStatementBuilder extends StatementBuilderBase {
         }
     }
 
-    private void closeJdbcResources(PreparedStatement statement, Connection connection) {
-        try (statement; connection) {
-            statement.close();
-            if (ownsConnection) {
-                connection.close();
-            }
-        } catch (SQLException e) {
-            throw new AsyncSQLException(e);
-        }
-    }
-
     private void closeResultSet(ResultSet resultSet) {
         try {
             resultSet.close();
@@ -131,11 +120,6 @@ class JdbcStatementBuilder extends StatementBuilderBase {
             final var statementAwareStreamFuture = compileJdbcStatement(connection).thenApply(statement -> {
 
                 final var rsFuture = jdbcExecuteQuery(statement)
-                        .whenComplete(($, error) -> {
-                            if (error != null) {
-                                closeJdbcResources(statement, connection);
-                            }
-                        })
                         .thenApply(crs -> StreamSupport.stream(new ResultSetRowIterator(crs), false)
                                 .onClose(() -> closeResultSet(crs.getResultSet())));
 
