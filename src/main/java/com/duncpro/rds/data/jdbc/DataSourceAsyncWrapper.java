@@ -19,7 +19,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  * Implementation of {@link AsyncDatabase} which wraps {@link DataSource}.
  */
 @RequiredArgsConstructor
-public class DataSourceAsyncDatabase implements AsyncDatabase {
+public class DataSourceAsyncWrapper implements AsyncDatabase {
     private final DataSource dataSource;
     private final ExecutorService transactionExecutor;
     private final ExecutorService sqlExecutor;

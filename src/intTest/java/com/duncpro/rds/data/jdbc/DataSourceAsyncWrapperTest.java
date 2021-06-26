@@ -13,7 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class DataSourceAsyncDatabaseTest {
+public class DataSourceAsyncWrapperTest {
     private final BasicDataSource dataSource = new BasicDataSource();
 
     @Before
@@ -37,7 +37,7 @@ public class DataSourceAsyncDatabaseTest {
         sqlExecutor.shutdown();
     }
 
-    final DataSourceAsyncDatabase db = new DataSourceAsyncDatabase(dataSource, transactionExecutor, sqlExecutor);
+    final DataSourceAsyncWrapper db = new DataSourceAsyncWrapper(dataSource, transactionExecutor, sqlExecutor);
 
     @Test
     public void testTransactions() {

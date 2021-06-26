@@ -12,7 +12,7 @@ import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 class AmazonRDSTransaction implements AsyncDatabaseTransaction {
-    private final AmazonRDSAsyncDatabaseWrapper db;
+    private final AmazonDataAPIDatabase db;
     private final String transactionId;
 
     @Override

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
-public class AmazonRDSAsyncDatabaseWrapperTest {
+public class AmazonDataAPIDatabaseTest {
 
     final ExecutorService transactionExecutor = Executors.newCachedThreadPool();
 
@@ -73,7 +73,7 @@ public class AmazonRDSAsyncDatabaseWrapperTest {
         final var awsResources = loadAWSResourcesFromFileSystem()
                 .orElseGet(this::loadAWSResourcesFromEnvironment);
 
-        db = new AmazonRDSAsyncDatabaseWrapper(rdsDataClient, awsResources.dbArn, awsResources.secretArn,
+        db = new AmazonDataAPIDatabase(rdsDataClient, awsResources.dbArn, awsResources.secretArn,
                 transactionExecutor);
     }
 

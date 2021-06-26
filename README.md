@@ -5,7 +5,7 @@ Wrapper around RDS Data API (AWS SDK v2) inspired by the standard JDBC API.
 
 ## Getting Started
 ```java
-final AsyncDatabase db = new AmazonRDSAsyncDatabaseWrapper(/* */);
+final AsyncDatabase db = new AmazonDataAPIDatabase(/* */);
 ```
 
 ## Features
@@ -27,11 +27,11 @@ db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
         .join();
 ```
 ### JDBC DataSource Implementation
-In addition to `AmazonRDSAsyncDatabaseWrapper`, this library includes a second implementation of `AsyncDatabase`, 
-called `DataSourceAsyncDatabase`. This class wraps a standard JDBC `DataSource` with `AsyncDatabase`
+In addition to `AmazonDataAPIDatabase`, this library includes a second implementation of `AsyncDatabase`, 
+called `DataSourceAsyncWrapper`. This class wraps a standard JDBC `DataSource` with `AsyncDatabase`
 making it easy to test database-related code locally.
 ```java
-final AsyncDatabase db = new DataSourceAsyncDatabase(/* */);
+final AsyncDatabase db = new DataSourceAsyncWrapper(/* */);
 ```
 ### Transactions
 ```java

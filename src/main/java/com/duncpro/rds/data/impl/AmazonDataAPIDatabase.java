@@ -17,7 +17,7 @@ import java.util.function.Function;
  * Exposes {@link RdsDataClient} as an {@link AsyncDatabase}.
  */
 @ThreadSafe
-public class AmazonRDSAsyncDatabaseWrapper implements AsyncDatabase {
+public class AmazonDataAPIDatabase implements AsyncDatabase {
     final RdsDataAsyncClient rdsDataClient;
     final String databaseArn;
     final String databaseSecretArn;
@@ -29,8 +29,8 @@ public class AmazonRDSAsyncDatabaseWrapper implements AsyncDatabase {
      * @param databaseSecretArn the ARN of the AWS SecretsManager Secret which contains the credentials for this database.
      * @param transactionExecutor the {@link ExecutorService} which all transaction tasks will be run on.
      */
-    public AmazonRDSAsyncDatabaseWrapper(RdsDataAsyncClient rdsDataClient, String databaseArn,
-                                         String databaseSecretArn, ExecutorService transactionExecutor) {
+    public AmazonDataAPIDatabase(RdsDataAsyncClient rdsDataClient, String databaseArn,
+                                 String databaseSecretArn, ExecutorService transactionExecutor) {
         this.rdsDataClient = rdsDataClient;
         this.databaseArn = databaseArn;
         this.databaseSecretArn = databaseSecretArn;

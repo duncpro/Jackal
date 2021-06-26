@@ -18,10 +18,10 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 class AmazonRDSStatementBuilder extends StatementBuilderBase {
-    private final AmazonRDSAsyncDatabaseWrapper db;
+    private final AmazonDataAPIDatabase db;
     private final String transactionId;
 
-    AmazonRDSStatementBuilder(AmazonRDSAsyncDatabaseWrapper db, String sql, @Nullable String transactionId) {
+    AmazonRDSStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable String transactionId) {
         super(sql);
         this.db = db;
         this.transactionId = transactionId;
