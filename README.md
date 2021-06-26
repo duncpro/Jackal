@@ -37,7 +37,7 @@ asyncDb.runTransactionAsync(transaction -> {
             .executeUpdate()
             .join();
 
-        asyncDb.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
+        transaction.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
             .setString(0, "hello")
             .executeUpdate()
             .join();
