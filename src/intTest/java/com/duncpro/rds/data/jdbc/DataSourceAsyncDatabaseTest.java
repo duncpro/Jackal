@@ -18,7 +18,6 @@ public class DataSourceAsyncDatabaseTest {
     public void startDatabase() throws SQLException {
         dataSource.setDriverClassName("org.h2.Driver");
         dataSource.setUrl("jdbc:h2:mem:test");
-        System.out.println(dataSource.getUrl());
         dataSource.start();
     }
 
@@ -45,15 +44,15 @@ public class DataSourceAsyncDatabaseTest {
                     .executeUpdate()
                     .join();
 
-            asyncDb.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
+            transaction.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
                     .setString(0, "hello")
                     .executeUpdate()
                     .join();
 
-            return asyncDb.prepareStatement("SELECT * FROM TABLE_A;")
+            return transaction.prepareStatement("SELECT COLUMN_A FROM TABLE_A;")
                     .executeQuery()
-                    .join()
-                    .toRowList().get(0).get("COLUMN_A");
+                    .map(row -> row.getString("COLUMN_A"))
+                    .findFirst().orElseThrow(AssertionError::new); // We just inserted an element
         });
 
         assertEquals("hello", retrievedValue.join());

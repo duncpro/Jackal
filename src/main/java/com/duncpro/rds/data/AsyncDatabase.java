@@ -2,6 +2,8 @@ package com.duncpro.rds.data;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
+import java.util.stream.Collector;
+import java.util.stream.Stream;
 
 /**
  * A minimalistic asynchronous SQL API inspired by JDBC.
@@ -24,6 +26,8 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      * throwing, then the transaction will be committed.
      *
      * All resources allocated as a result of the transaction are freed after the transaction procedure returns.
+     * For this reason you should never return a {@link Stream} of values which was produced by the transaction.
+     * To mitigate this, just collect the stream via {@link Stream#collect)} before returning.
      *
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
@@ -36,6 +40,7 @@ public interface AsyncDatabase extends SQLStatementExecutor {
                 transaction.rollback().join();
                 throw e;
             }
+
             transaction.commit().join();
             return returnValue;
         });

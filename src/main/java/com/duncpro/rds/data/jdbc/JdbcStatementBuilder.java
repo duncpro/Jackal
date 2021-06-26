@@ -1,19 +1,18 @@
 package com.duncpro.rds.data.jdbc;
 
-import com.duncpro.rds.data.QueryResult;
-import com.duncpro.rds.data.SnapshotQueryResult;
+import com.duncpro.rds.data.QueryResultRow;
 import com.duncpro.rds.data.StatementBuilderBase;
+import com.duncpro.rds.data.StreamUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -31,33 +30,48 @@ class JdbcStatementBuilder extends StatementBuilderBase {
         this.executor = executor;
     }
 
-    private CompletableFuture<Void> closeJdbcConnection(Connection connection) {
-        return runAsync(() -> {
-            if (ownsConnection) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    throw new AsyncSQLException(e);
-                }
-            }
-        }, executor);
-    }
-
-
-    private CompletableFuture<Void> closeJdbcStatement(PreparedStatement statement) {
-        return runAsync(() -> {
+    private void closeJdbcConnection(Connection connection) {
+        if (ownsConnection) {
             try {
-                statement.close();
+                connection.close();
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
             }
-        }, executor);
+        }
+    }
+
+    private void closeJdbcStatement(PreparedStatement statement) {
+        try {
+            statement.close();
+        } catch (SQLException e) {
+            throw new AsyncSQLException(e);
+        }
+    }
+
+    private void closeJdbcResources(PreparedStatement statement, Connection connection) {
+        try (statement; connection) {
+            statement.close();
+            if (ownsConnection) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            throw new AsyncSQLException(e);
+        }
+    }
+
+    private void closeResultSet(ResultSet resultSet) {
+        try {
+            resultSet.close();
+        } catch (SQLException e) {
+            throw new AsyncSQLException(e);
+        }
     }
 
     private CompletableFuture<PreparedStatement> compileJdbcStatement(Connection connection) {
         return supplyAsync(() -> {
             try {
-                final var statement = connection.prepareStatement(parameterizedSQL);
+                final var statement = connection.prepareStatement(parameterizedSQL, ResultSet.TYPE_SCROLL_INSENSITIVE,
+                        ResultSet.CONCUR_READ_ONLY);
 
                 for (int i = 0; i < args.length; i++) {
                     final var arg = args[i];
@@ -79,45 +93,47 @@ class JdbcStatementBuilder extends StatementBuilderBase {
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
             }
-        });
+        }, executor);
     }
 
-    private QueryResult convertJdbcResult(ResultSet resultSet) throws SQLException {
-        final var resultsSnapshot = new ArrayList<Map<String, Object>>();
-        try (resultSet) {
-            while (resultSet.next()) {
-                final var rowSnapshot = new HashMap<String, Object>();
-                for (int i = 0; i < resultSet.getMetaData().getColumnCount(); i++) {
-                    final var columnName = resultSet.getMetaData().getColumnName(i + 1);
-                    final var value = resultSet.getObject(i + 1);
-                    rowSnapshot.put(columnName, value);
-                }
-                resultsSnapshot.add(rowSnapshot);
-            }
-        }
-        return new SnapshotQueryResult(resultsSnapshot);
-    }
-
-    private CompletableFuture<QueryResult> jdbcExecuteQuery(PreparedStatement statement) {
+    private CompletableFuture<ResultSet> jdbcExecuteQuery(PreparedStatement statement) {
         return supplyAsync(() -> {
-            try (final var resultSet = statement.executeQuery()) {
-                return convertJdbcResult(resultSet);
+            try {
+                return statement.executeQuery();
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
             }
-        });
+        }, executor);
     }
 
     @Override
-    protected CompletableFuture<QueryResult> executeQueryImpl() {
-        return connectionFuture.thenCompose(connection ->
-                compileJdbcStatement(connection)
-                        .thenCompose(statement ->
-                                jdbcExecuteQuery(statement)
-                                        .whenComplete(($, $$) -> closeJdbcStatement(statement))
-                        )
-                        .whenCompleteAsync(($, $$) -> closeJdbcConnection(connection).join())
-        );
+    public Stream<QueryResultRow> executeQueryImpl() {
+        final var fullyAwareStream = connectionFuture.thenApply((connection) -> {
+
+            final var statementAwareStreamFuture = compileJdbcStatement(connection).thenApply(statement -> {
+
+                final var rsFuture = jdbcExecuteQuery(statement)
+                        .whenComplete(($, error) -> {
+                            if (error != null) {
+                                closeJdbcResources(statement, connection);
+                            }
+                        })
+                        .thenApply(resultSet ->
+                                StreamSupport.stream(new ResultSetRowIterator(resultSet), false)
+                                        .onClose(() -> closeResultSet(resultSet))
+                        );
+
+                return StreamUtil.unwrapStream(rsFuture)
+                        .onClose(() -> closeJdbcStatement(statement));
+            });
+
+            // Connection-aware Stream
+            return StreamUtil.unwrapStream(statementAwareStreamFuture)
+                    .onClose(() -> closeJdbcConnection(connection));
+        });
+
+        return StreamUtil.unwrapStream(fullyAwareStream);
+
     }
 
     @Override
@@ -126,9 +142,9 @@ class JdbcStatementBuilder extends StatementBuilderBase {
                 compileJdbcStatement(connection)
                         .thenCompose(statement ->
                                 jdbcExecuteUpdate(statement)
-                                        .thenCompose(($) -> closeJdbcStatement(statement))
+                                        .whenCompleteAsync(($, $$) -> closeJdbcStatement(statement), executor)
                         )
-                        .whenCompleteAsync(($, $$) -> closeJdbcConnection(connection).join())
+                        .whenCompleteAsync(($, $$) -> closeJdbcConnection(connection), executor)
         );
     }
 }

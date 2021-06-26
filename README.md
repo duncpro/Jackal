@@ -10,11 +10,12 @@ final AsyncDatabase db = new AmazonRDSAsyncDatabaseWrapper(/* */);
 
 ## Features
 ### Fully embraces Java 8's CompletableFuture
-All calls return `CompletableFuture` making it easy to integrate relational database queries into your asynchronous event-based application.
+All updates return `CompletableFuture` and all queries return `Stream`.
 ```java
-db.prepareStatement("SELECT * FROM person")
-        .executeQuery() // returns CompletableFuture<QueryResult>
-        .thenApply(rs -> rs.toRowList().get(0).get("name"));
+asyncDb.prepareStatement("SELECT * FROM person")
+        .executeQuery()
+        .map(row -> row.getString("first_name"))
+        .collect(Collectors.toSet());
 ```
 ### JDBC-like Parameterization
 ```java
@@ -43,11 +44,10 @@ asyncDb.commitTransactionAsync(transaction -> {
             .setString(0, "hello")
             .executeUpdate()
             .join();
-
-        transaction.commit().join();
 });
 ```
 - Use `runTransactionAsync(Callback)` if you would like to explicitly commit the transaction from within the callback.
+  (via `transaction.commit().join()`)
 - Both `commitTransactionAsync` and `runTransactionAsync` return a `CompletableFuture`
 which encapsulates the return value of the callback function.
 

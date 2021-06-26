@@ -90,12 +90,12 @@ public class AmazonRDSAsyncDatabaseWrapperTest {
 
             return transaction.prepareStatement("SELECT * FROM table_b;")
                     .executeQuery()
-                    .join()
-                    .toRowList();
+                    .findFirst()
+                    .orElseThrow(AssertionError::new); // We just inserted a record.
         });
 
-        assertEquals("hello", retrievedValue.join().get(0).get("col_a"));
-        assertEquals(100L, retrievedValue.join().get(0).get("col_b"));
-        assertEquals(true, retrievedValue.join().get(0).get("col_c"));
+        assertEquals("hello", retrievedValue.join().getString("col_a"));
+        assertEquals(100L, retrievedValue.join().getLong("col_b"));
+        assertEquals(true, retrievedValue.join().getBoolean("col_c"));
     }
 }

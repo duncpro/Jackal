@@ -1,16 +1,21 @@
 package com.duncpro.rds.data.impl;
 
-import com.duncpro.rds.data.QueryResult;
+import com.duncpro.rds.data.QueryResultRow;
 import com.duncpro.rds.data.StatementBuilderBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;
+import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementResponse;
 import software.amazon.awssdk.services.rdsdata.model.Field;
 import software.amazon.awssdk.services.rdsdata.model.SqlParameter;
 
 import javax.annotation.Nullable;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class AmazonRDSStatementBuilder extends StatementBuilderBase {
     private final AmazonRDSAsyncDatabaseWrapper db;
@@ -33,8 +38,7 @@ class AmazonRDSStatementBuilder extends StatementBuilderBase {
         return compiledSql;
     }
 
-    @Override
-    protected CompletableFuture<QueryResult> executeQueryImpl() {
+    private ExecuteStatementRequest compileAWSRequest() {
         final var requestBuilder = ExecuteStatementRequest.builder()
                 .resourceArn(db.databaseArn)
                 .secretArn(db.databaseSecretArn)
@@ -46,13 +50,31 @@ class AmazonRDSStatementBuilder extends StatementBuilderBase {
             requestBuilder.transactionId(transactionId);
         }
 
-        return db.rdsDataClient.executeStatement(requestBuilder.build())
-                .thenApply(AmazonRDSQueryResult::new);
+        return requestBuilder.build();
+    }
+
+    @Override
+    protected Stream<QueryResultRow> executeQueryImpl() {
+        final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
+                .thenApply(AmazonRDSStatementBuilder::extractRowsFromAWSResponse)
+                .thenApply(Collection::stream);
+
+        final Supplier<Spliterator<QueryResultRow>> supplier = () ->
+                resultStreamFuture
+                        .join()
+                        .map(QueryResultRow::fromMap)
+                        .spliterator();
+
+        return StreamSupport
+                .stream(supplier, Spliterator.ORDERED|Spliterator.SIZED|Spliterator.SUBSIZED|Spliterator.IMMUTABLE,
+                        false);
     }
 
     @Override
     protected CompletableFuture<Void> executeUpdateImpl() {
-        return executeQueryImpl().thenApply(($) -> null);
+        return db.rdsDataClient
+                .executeStatement(compileAWSRequest())
+                .thenApply(($) -> null);
     }
 
     protected SqlParameter[] compileArgs() {
@@ -86,6 +108,37 @@ class AmazonRDSStatementBuilder extends StatementBuilderBase {
         }
 
         return awsStatementParams;
+    }
+
+    private static List<Map<String, Object>> extractRowsFromAWSResponse(ExecuteStatementResponse awsResponse) {
+        final var rowList = new ArrayList<Map<String, Object>>();
+        for (final var awsRowRecord : awsResponse.records()) {
+            final var row = new HashMap<String, Object>();
+
+            for (int columnIndex = 0; columnIndex < awsResponse.columnMetadata().size(); columnIndex++) {
+                final var columnName = awsResponse.columnMetadata().get(columnIndex).name();
+                final var typeName = awsResponse.columnMetadata().get(columnIndex).typeName();
+                final var serializedValue = awsRowRecord.get(columnIndex);
+
+                Object deserializedValue;
+
+                if (typeName.equals("varchar")) {
+                    deserializedValue = serializedValue.stringValue();
+                } else if (typeName.equals("bool")) {
+                    deserializedValue = serializedValue.booleanValue();
+                } else if (typeName.contains("int")) {
+                    deserializedValue = serializedValue.longValue();
+                } else {
+                    throw new AssertionError("Unexpected data type: " + typeName);
+                }
+
+                row.put(columnName, deserializedValue);
+            }
+
+            rowList.add(row);
+        }
+
+        return rowList;
     }
 
     private static final Logger logger = LoggerFactory.getLogger(AmazonRDSStatementBuilder.class);
