@@ -34,7 +34,7 @@ final AsyncDatabase db = new DataSourceAsyncDatabase();
 ```java
 asyncDb.runTransactionAsync(transaction -> {
         transaction.prepareStatement("CREATE TABLE TABLE_A (COLUMN_A varchar);")
-        .executeUpdate()
+            .executeUpdate()
             .join();
 
         asyncDb.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
