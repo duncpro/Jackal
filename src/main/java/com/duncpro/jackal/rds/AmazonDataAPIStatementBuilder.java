@@ -54,34 +54,18 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
 
     @Override
     protected Stream<QueryResultRow> executeQueryImpl() {
-        if (transaction != null)
-            transaction.pendingOperations.incrementAndGet();
-
         final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
                 .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
         return StreamUtil.unwrapStream(resultStreamFuture)
                 .map(QueryResultRow::fromMap)
-                .onClose(() -> {
-                    if (transaction != null) {
-                        transaction.pendingOperations.decrementAndGet();
-                    }
-                });
     }
 
     @Override
     protected CompletableFuture<Void> executeUpdateImpl() {
-        if (transaction != null)
-            transaction.pendingOperations.incrementAndGet();
-
         return db.rdsDataClient
                 .executeStatement(compileAWSRequest())
-                .whenComplete(($, $$) -> {
-                    if (transaction != null) {
-                        transaction.pendingOperations.decrementAndGet();
-                    }
-                })
                 .thenApply(($) -> null);
     }
 
