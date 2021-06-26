@@ -100,8 +100,7 @@ class JdbcStatementBuilder extends StatementBuilderBase {
 
     private CompletableFuture<QueryResult> jdbcExecuteQuery(PreparedStatement statement) {
         return supplyAsync(() -> {
-            try {
-                final var resultSet = statement.executeQuery();
+            try (final var resultSet = statement.executeQuery()) {
                 return convertJdbcResult(resultSet);
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
