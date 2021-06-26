@@ -45,7 +45,7 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
 
         return rdsDataClient.beginTransaction(request)
                 .thenApply(BeginTransactionResponse::transactionId)
-                .thenApply(transactionId -> new AmazonRDSTransaction(this, transactionId));
+                .thenApply(transactionId -> new AmazonDataAPITransaction(this, transactionId));
     }
 
     @Override
@@ -56,6 +56,6 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
 
     @Override
     public StatementBuilder prepareStatement(String parameterizedSQL) {
-        return new AmazonRDSStatementBuilder(this, parameterizedSQL, null);
+        return new AmazonDataAPIStatementBuilder(this, parameterizedSQL, null);
     }
 }

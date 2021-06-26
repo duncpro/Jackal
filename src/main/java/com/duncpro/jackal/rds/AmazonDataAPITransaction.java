@@ -11,7 +11,7 @@ import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;
 import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
-class AmazonRDSTransaction implements AsyncDatabaseTransaction {
+class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
     private final AmazonDataAPIDatabase db;
     private final String transactionId;
 
@@ -57,8 +57,8 @@ class AmazonRDSTransaction implements AsyncDatabaseTransaction {
 
     @Override
     public StatementBuilder prepareStatement(String parameterizedSQL) {
-        return new AmazonRDSStatementBuilder(db, parameterizedSQL, transactionId);
+        return new AmazonDataAPIStatementBuilder(db, parameterizedSQL, transactionId);
     }
 
-    private final static Logger logger = LoggerFactory.getLogger(AmazonRDSTransaction.class);
+    private final static Logger logger = LoggerFactory.getLogger(AmazonDataAPITransaction.class);
 }

@@ -17,11 +17,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-class AmazonRDSStatementBuilder extends StatementBuilderBase {
+class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
     private final AmazonDataAPIDatabase db;
     private final String transactionId;
 
-    AmazonRDSStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable String transactionId) {
+    AmazonDataAPIStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable String transactionId) {
         super(sql);
         this.db = db;
         this.transactionId = transactionId;
@@ -56,7 +56,7 @@ class AmazonRDSStatementBuilder extends StatementBuilderBase {
     @Override
     protected Stream<QueryResultRow> executeQueryImpl() {
         final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
-                .thenApply(AmazonRDSStatementBuilder::extractRowsFromAWSResponse)
+                .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
         final Supplier<Spliterator<QueryResultRow>> supplier = () ->
@@ -141,5 +141,5 @@ class AmazonRDSStatementBuilder extends StatementBuilderBase {
         return rowList;
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(AmazonRDSStatementBuilder.class);
+    private static final Logger logger = LoggerFactory.getLogger(AmazonDataAPIStatementBuilder.class);
 }
