@@ -1,7 +1,6 @@
 package com.duncpro.jackal.rds;
 
-import com.duncpro.jackal.AsyncDatabase;
-import com.duncpro.jackal.CreatePeopleTransaction;
+import com.duncpro.jackal.*;
 import lombok.Value;
 import org.junit.After;
 import org.junit.Assert;
@@ -78,16 +77,17 @@ public class AmazonDataAPIDatabaseTest {
     }
 
     @Test
-    public void testTransaction() {
-        final var expected = Set.of("Will", "Allison", "Madison");
+    public void testCommitTransactionAsync() {
+        new CommitTransactionAsyncTestProcedure().accept(db);
+    }
 
-        db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
+    @Test
+    public void testRollback() {
+        new RollbackTestProcedure().accept(db);
+    }
 
-        final var actual = db.prepareStatement("SELECT first_name FROM people;")
-                .executeQuery()
-                .map(row -> row.getString("first_name"))
-                .collect(Collectors.toSet());
-
-        Assert.assertEquals(expected, actual);
+    @Test
+    public void testImplicitRollback() {
+        new ImplicitRollbackTestProcedure().accept(db);
     }
 }

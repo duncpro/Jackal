@@ -2,6 +2,7 @@ package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.StatementBuilderBase;
+import com.duncpro.jackal.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;
@@ -59,15 +60,8 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
                 .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
-        final Supplier<Spliterator<QueryResultRow>> supplier = () ->
-                resultStreamFuture
-                        .join()
-                        .map(QueryResultRow::fromMap)
-                        .spliterator();
-
-        return StreamSupport
-                .stream(supplier, Spliterator.ORDERED|Spliterator.SIZED|Spliterator.SUBSIZED|Spliterator.IMMUTABLE,
-                        false);
+        return StreamUtil.unwrapStream(resultStreamFuture)
+                .map(QueryResultRow::fromMap);
     }
 
     @Override

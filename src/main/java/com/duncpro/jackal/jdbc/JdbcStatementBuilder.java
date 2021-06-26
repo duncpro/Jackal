@@ -3,6 +3,7 @@ package com.duncpro.jackal.jdbc;
 import com.duncpro.jackal.StatementBuilderBase;
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.StreamUtil;
+import lombok.Value;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -96,12 +97,29 @@ class JdbcStatementBuilder extends StatementBuilderBase {
         }, executor);
     }
 
-    private CompletableFuture<ResultSet> jdbcExecuteQuery(PreparedStatement statement) {
-        return supplyAsync(() -> {
+    private CompletableFuture<ResultSetRowIterator.CountedResultSet> jdbcExecuteQuery(PreparedStatement statement) {
+        final var resultSetFuture = supplyAsync(() -> {
             try {
                 return statement.executeQuery();
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
+            }
+        }, executor);
+
+        return resultSetFuture.thenApplyAsync(resultSet -> {
+            try {
+                resultSet.last();
+                final var length = resultSet.getRow();
+                resultSet.beforeFirst();
+                return new ResultSetRowIterator.CountedResultSet(resultSet, length);
+            } catch (SQLException e) {
+                final var wrappedException = new AsyncSQLException(e);
+                try {
+                    resultSet.close();
+                } catch (SQLException e1) {
+                   e.addSuppressed(e1);
+                }
+                throw wrappedException;
             }
         }, executor);
     }
@@ -118,10 +136,8 @@ class JdbcStatementBuilder extends StatementBuilderBase {
                                 closeJdbcResources(statement, connection);
                             }
                         })
-                        .thenApply(resultSet ->
-                                StreamSupport.stream(new ResultSetRowIterator(resultSet), false)
-                                        .onClose(() -> closeResultSet(resultSet))
-                        );
+                        .thenApply(crs -> StreamSupport.stream(new ResultSetRowIterator(crs), false)
+                                .onClose(() -> closeResultSet(crs.getResultSet())));
 
                 return StreamUtil.unwrapStream(rsFuture)
                         .onClose(() -> closeJdbcStatement(statement));

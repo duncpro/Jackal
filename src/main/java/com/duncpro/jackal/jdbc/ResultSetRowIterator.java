@@ -2,6 +2,7 @@ package com.duncpro.jackal.jdbc;
 
 import com.duncpro.jackal.QueryResultRow;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -9,12 +10,23 @@ import java.util.HashMap;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-@RequiredArgsConstructor
 public class ResultSetRowIterator implements Spliterator<QueryResultRow> {
     private final ResultSet resultSet;
+    private final int length;
 
     // The row the ResultSet is currently on. Zero if next() has never been called.
     private int currentRow = 0;
+
+    @Value
+    public static class CountedResultSet {
+        ResultSet resultSet;
+        int length;
+    }
+
+    ResultSetRowIterator(CountedResultSet crs) {
+        this.resultSet = crs.resultSet;
+        this.length = crs.length;
+    }
 
     @Override
     public boolean tryAdvance(Consumer<? super QueryResultRow> action) {
@@ -38,21 +50,12 @@ public class ResultSetRowIterator implements Spliterator<QueryResultRow> {
 
     @Override
     public long estimateSize() {
-        return getResultSetFullLength() - currentRow;
+        return length - currentRow;
     }
 
     @Override
     public int characteristics() {
-        return Spliterator.ORDERED;
-    }
-
-    int getResultSetFullLength() {
-        try {
-            resultSet.last();
-            return resultSet.getRow();
-        } catch (SQLException e) {
-            throw new AsyncSQLException(e);
-        }
+        return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
     }
 
     private QueryResultRow copyCurrentRow() throws SQLException {

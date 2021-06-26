@@ -1,6 +1,6 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.CreatePeopleTransaction;
+import com.duncpro.jackal.*;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.intellij.lang.annotations.Language;
 import org.junit.After;
@@ -9,9 +9,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class DataSourceAsyncWrapperTest {
@@ -41,16 +43,17 @@ public class DataSourceAsyncWrapperTest {
     final DataSourceAsyncWrapper db = new DataSourceAsyncWrapper(dataSource, transactionExecutor, sqlExecutor);
 
     @Test
-    public void testTransactions() {
-        Set<String> expected = Set.of("David", "Helen", "Austin");
+    public void testCommitTransactionAsync() {
+        new CommitTransactionAsyncTestProcedure().accept(db);
+    }
 
-        db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
+    @Test
+    public void testRollback() {
+        new RollbackTestProcedure().accept(db);
+    }
 
-        final var actual = db.prepareStatement("SELECT first_name FROM people;")
-                .executeQuery()
-                .map(row -> row.getString("first_name"))
-                .collect(Collectors.toSet());
-
-        Assert.assertEquals(expected, actual);
+    @Test
+    public void testImplicitRollback() {
+        new ImplicitRollbackTestProcedure().accept(db);
     }
 }
