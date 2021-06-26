@@ -47,7 +47,6 @@ public abstract class StatementBuilderBase implements StatementBuilder {
         if (countArgs() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }
-
         return executeQueryImpl();
     }
 
