@@ -1,5 +1,5 @@
 # Jackal
-![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)
+[![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)](lhttps://travis-ci.com/github/duncpro/rds-data-api-wrapper)
 
 Wrapper around RDS Data API (AWS SDK v2) inspired by the standard JDBC API.
 
