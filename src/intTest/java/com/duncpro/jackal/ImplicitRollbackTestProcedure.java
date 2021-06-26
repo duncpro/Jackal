@@ -19,7 +19,7 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
 
         final var transactionResult = db.commitTransactionAsync(t -> {
             t.prepareStatement("INSERT INTO colors VALUES (?)")
-                    .setString(0, "red")
+                    .withArguments("red")
                     .executeUpdate()
                     .join();
 
@@ -36,7 +36,7 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
 
         final var colorCount = db
                 .prepareStatement("SELECT * FROM colors WHERE name = ?")
-                .setString(0, "red")
+                .withArguments("red")
                 .executeQuery()
                 .count();
 

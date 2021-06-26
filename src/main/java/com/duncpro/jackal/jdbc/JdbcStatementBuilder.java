@@ -74,8 +74,8 @@ class JdbcStatementBuilder extends StatementBuilderBase {
                 final var statement = connection.prepareStatement(parameterizedSQL, ResultSet.TYPE_SCROLL_INSENSITIVE,
                         ResultSet.CONCUR_READ_ONLY);
 
-                for (int i = 0; i < args.length; i++) {
-                    final var arg = args[i];
+                for (int i = 0; i < args.size(); i++) {
+                    final var arg = args.get(i);
                     statement.setObject(i + 1, arg);
                 }
 

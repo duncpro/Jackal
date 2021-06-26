@@ -70,10 +70,10 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
     }
 
     protected SqlParameter[] compileArgs() {
-        SqlParameter[] awsStatementParams = new SqlParameter[countArgs()];
+        SqlParameter[] awsStatementParams = new SqlParameter[args.size()];
 
-        for (int i = 0; i < args.length; i++) {
-            final var arg = args[i];
+        for (int i = 0; i < args.size(); i++) {
+            final var arg = args.get(i);
             final var paramBuilder = SqlParameter.builder().name(String.valueOf(i));
 
             final Field field;

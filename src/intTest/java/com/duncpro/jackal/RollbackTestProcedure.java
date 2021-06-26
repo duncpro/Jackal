@@ -16,13 +16,13 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
                 .join();
 
         db.prepareStatement("INSERT INTO dogs VALUES (?)")
-                .setString(0, "Cocoa")
+                .withArguments("Cocoa")
                 .executeUpdate()
                 .join();
 
         db.runTransactionAsync(t -> {
             t.prepareStatement("DELETE from dogs WHERE name = ?;")
-                    .setString(0, "Cocoa")
+                    .withArguments("Cocoa")
                     .executeUpdate()
                     .join();
 

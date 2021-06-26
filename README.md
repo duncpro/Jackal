@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.com/duncpro/jackal.svg?branch=master)](https://travis-ci.com/duncpro/jackal)
 [![codecov](https://codecov.io/gh/duncpro/jackal/branch/master/graph/badge.svg?token=B5MZD14GUT)](https://codecov.io/gh/duncpro/jackal)
 
-Wrapper around RDS Data API (AWS SDK v2) inspired by the standard JDBC API.
+Wrapper around RDS Data API (AWS SDK v2).
 
 ## Getting Started
 ```java
@@ -21,9 +21,7 @@ db.prepareStatement("SELECT * FROM person")
 ### JDBC-like Parameterization
 ```java
 db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
-        .setString(0, "Duncan Proctor")
-        .setLong(1, 23)
-        .setBoolean(2, true)
+        .withArguments("Duncan Proctor", 23, true)
         .executeUpdate()
         .join();
 ```
@@ -42,7 +40,7 @@ db.commitTransactionAsync(transaction -> {
             .join();
 
         transaction.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
-            .setString(0, "hello")
+            .withArguments("hello")
             .executeUpdate()
             .join();
 });
@@ -64,11 +62,11 @@ The official [Official Data API Client Library](https://github.com/awslabs/rds-d
     CompletableFuture. 
   - The parameterization syntax is too verbose, whereas the original JDBC
     syntax is much more concise.
-      - AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
-      - JDBC-like Syntax: `SELECT * FROM table_a WHERE column_a = ?;`
+      - Offical AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
+      - JDBC-like Parameterization: `SELECT * FROM table_a WHERE column_a = ?;`
   - It only exposes concrete types so there is no easy way to Mock
     the API.
     
 
 ## DTO
-Mapping results to Java objects is outside the scope of this project.
+Mapping results to POJOs is outside the scope of this project.

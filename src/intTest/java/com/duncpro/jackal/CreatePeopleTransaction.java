@@ -24,7 +24,7 @@ public class CreatePeopleTransaction implements Function<AsyncDatabaseTransactio
         firstNames.stream()
                 .map(firstName ->
                         db.prepareStatement("INSERT INTO people VALUES (?);")
-                                .setString(0, firstName)
+                                .withArguments(firstName)
                                 .executeUpdate()
                 )
                 .forEach(CompletableFuture::join);
