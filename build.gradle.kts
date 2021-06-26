@@ -20,6 +20,9 @@ val intTestRuntimeOnly: Configuration by configurations.getting {
     extendsFrom(configurations.runtimeOnly.get())
 }
 
+val intTestCompileOnly: Configuration by configurations.getting {}
+val intTestAnnotationProcessor: Configuration by configurations.getting {}
+
 repositories {
     mavenCentral()
 }
@@ -33,7 +36,9 @@ dependencies {
     compileOnly("org.projectlombok:lombok:${lombokVersion}")
     annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
     testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
+    intTestCompileOnly("org.projectlombok:lombok:${lombokVersion}")
     testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
+    intTestAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
     testImplementation("junit:junit:4.13")
 

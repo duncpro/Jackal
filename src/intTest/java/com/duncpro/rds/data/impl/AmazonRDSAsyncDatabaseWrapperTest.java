@@ -1,6 +1,7 @@
 package com.duncpro.rds.data.impl;
 
 import com.duncpro.rds.data.AsyncDatabase;
+import lombok.Value;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,19 +33,44 @@ public class AmazonRDSAsyncDatabaseWrapperTest {
 
     private AsyncDatabase db;
 
-    @Before
-    public void initializeRDSWrapper() throws IOException {
-        final var properties = new Properties();
+    @Value
+    private static class AWSResources {
+        String dbArn;
+        String secretArn;
+    }
+
+    private Optional<AWSResources> loadAWSResourcesFromFileSystem() throws IOException {
         final var propertiesFs = getClass().getResourceAsStream("/rds-instance.properties");
-        assert propertiesFs != null;
+
+        if (propertiesFs == null) return Optional.empty();
+
+        final var properties = new Properties();
+
         try (final var reader = new InputStreamReader(propertiesFs)) {
             properties.load(reader);
         }
+        return Optional.of(
+                new AWSResources(
+                        properties.getProperty("dbArn"),
+                        properties.getProperty("secretArn")
+                )
+        );
+    }
 
-        final var dbArn = properties.getProperty("dbArn");
-        final var secretArn = properties.getProperty("secretArn");
+    private AWSResources loadAWSResourcesFromEnvironment() {
+        return new AWSResources(
+                System.getenv("AWS_DB_ARN"),
+                System.getenv("AWS_DB_SECRET_ARN")
+        );
+    }
 
-        db = new AmazonRDSAsyncDatabaseWrapper(rdsDataClient, dbArn, secretArn, transactionExecutor);
+    @Before
+    public void initializeRDSWrapper() throws IOException {
+        final var awsResources = loadAWSResourcesFromFileSystem()
+                .orElseGet(this::loadAWSResourcesFromEnvironment);
+
+        db = new AmazonRDSAsyncDatabaseWrapper(rdsDataClient, awsResources.dbArn, awsResources.secretArn,
+                transactionExecutor);
     }
 
     @Test

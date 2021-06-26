@@ -9,6 +9,7 @@
         </processorPath>
         <module name="rds-data-api-wrapper.main" />
         <module name="rds-data-api-wrapper.test" />
+        <module name="rds-data-api-wrapper.intTest" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="11" />
