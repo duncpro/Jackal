@@ -28,7 +28,7 @@ In addition to `AmazonRDSAsyncDatabaseWrapper`, this library includes a second i
 called `DataSourceAsyncDatabase`. This class wraps a standard JDBC `DataSource` with `AsyncDatabase`
 making it easy to test database-related code locally.
 ```java
-final AsyncDatabase db = new DataSourceAsyncDatabase();
+final AsyncDatabase db = new DataSourceAsyncDatabase(/* */);
 ```
 ### Transactions
 ```java
