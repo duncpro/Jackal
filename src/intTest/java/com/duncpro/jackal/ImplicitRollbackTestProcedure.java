@@ -34,11 +34,16 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
             Assert.assertEquals("Something went wrong", e.getCause().getMessage());
         }
 
-        final var colorCount = db
+        final var colorResultStream = db
                 .prepareStatement("SELECT * FROM colors WHERE name = ?")
                 .withArguments("red")
-                .executeQuery()
-                .count();
+                .executeQuery();
+
+        long colorCount;
+
+        try (colorResultStream) {
+            colorCount = colorResultStream.count();
+        }
 
         Assert.assertEquals(0, colorCount); // red was not added
     }

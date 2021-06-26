@@ -18,6 +18,7 @@ db.prepareStatement("SELECT * FROM person")
         .map(row -> row.getString("first_name"))
         .collect(Collectors.toSet());
 ```
+NOTE: You should explicitly close any streams which are produced by this library. 
 ### JDBC-like Parameterization
 ```java
 db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
@@ -62,7 +63,7 @@ The official [Official Data API Client Library](https://github.com/awslabs/rds-d
     CompletableFuture. 
   - The parameterization syntax is too verbose, whereas the original JDBC
     syntax is much more concise.
-      - Offical AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
+      - Official AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
       - JDBC-like Parameterization: `SELECT * FROM table_a WHERE column_a = ?;`
   - It only exposes concrete types so there is no easy way to Mock
     the API.

@@ -31,10 +31,15 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
             return null;
         }).join();
 
-        final var cocoaExists = db.prepareStatement("SELECT * FROM dogs;")
-                .executeQuery()
-                .map(row -> row.getString("name"))
-                .anyMatch((name) -> name.equals("Cocoa"));
+        final var results = db.prepareStatement("SELECT * FROM dogs;")
+                .executeQuery();
+
+        boolean cocoaExists;
+
+        try (results) {
+            cocoaExists = results.map(row -> row.getString("name"))
+                    .anyMatch((name) -> name.equals("Cocoa"));
+        }
 
         Assert.assertTrue(cocoaExists);
     }
