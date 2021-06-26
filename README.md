@@ -35,7 +35,7 @@ final AsyncDatabase db = new DataSourceAsyncWrapper(/* */);
 ```
 ### Transactions
 ```java
-asyncDb.commitTransactionAsync(transaction -> {
+db.commitTransactionAsync(transaction -> {
         transaction.prepareStatement("CREATE TABLE TABLE_A (COLUMN_A varchar);")
             .executeUpdate()
             .join();
