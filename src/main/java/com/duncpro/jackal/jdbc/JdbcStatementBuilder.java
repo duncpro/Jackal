@@ -1,8 +1,8 @@
-package com.duncpro.rds.data.jdbc;
+package com.duncpro.jackal.jdbc;
 
-import com.duncpro.rds.data.QueryResultRow;
-import com.duncpro.rds.data.StatementBuilderBase;
-import com.duncpro.rds.data.StreamUtil;
+import com.duncpro.jackal.StatementBuilderBase;
+import com.duncpro.jackal.QueryResultRow;
+import com.duncpro.jackal.StreamUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

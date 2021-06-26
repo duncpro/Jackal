@@ -1,7 +1,7 @@
-package com.duncpro.rds.data.impl;
+package com.duncpro.jackal.impl;
 
-import com.duncpro.rds.data.QueryResultRow;
-import com.duncpro.rds.data.StatementBuilderBase;
+import com.duncpro.jackal.QueryResultRow;
+import com.duncpro.jackal.StatementBuilderBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;

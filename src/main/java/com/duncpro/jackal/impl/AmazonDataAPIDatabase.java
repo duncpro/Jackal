@@ -1,8 +1,8 @@
-package com.duncpro.rds.data.impl;
+package com.duncpro.jackal.impl;
 
-import com.duncpro.rds.data.StatementBuilder;
-import com.duncpro.rds.data.AsyncDatabase;
-import com.duncpro.rds.data.AsyncDatabaseTransaction;
+import com.duncpro.jackal.StatementBuilder;
+import com.duncpro.jackal.AsyncDatabase;
+import com.duncpro.jackal.AsyncDatabaseTransaction;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 import software.amazon.awssdk.services.rdsdata.RdsDataClient;
 import software.amazon.awssdk.services.rdsdata.model.BeginTransactionRequest;

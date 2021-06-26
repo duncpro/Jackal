@@ -1,8 +1,7 @@
-package com.duncpro.rds.data;
+package com.duncpro.jackal;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor

@@ -1,6 +1,6 @@
-package com.duncpro.rds.data.jdbc;
+package com.duncpro.jackal.jdbc;
 
-import com.duncpro.rds.data.CreatePeopleTransaction;
+import com.duncpro.jackal.CreatePeopleTransaction;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.After;
 import org.junit.Assert;

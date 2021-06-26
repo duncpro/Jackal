@@ -1,4 +1,4 @@
-package com.duncpro.rds.data;
+package com.duncpro.jackal;
 
 import java.util.Map;
 

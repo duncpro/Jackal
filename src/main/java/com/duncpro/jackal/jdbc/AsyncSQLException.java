@@ -1,4 +1,4 @@
-package com.duncpro.rds.data.jdbc;
+package com.duncpro.jackal.jdbc;
 
 import java.sql.SQLException;
 import java.util.concurrent.CompletionException;

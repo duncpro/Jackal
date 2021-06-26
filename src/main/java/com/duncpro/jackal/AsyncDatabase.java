@@ -1,8 +1,7 @@
-package com.duncpro.rds.data;
+package com.duncpro.jackal;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 /**

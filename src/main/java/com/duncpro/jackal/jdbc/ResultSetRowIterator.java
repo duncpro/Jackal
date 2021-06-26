@@ -1,6 +1,6 @@
-package com.duncpro.rds.data.jdbc;
+package com.duncpro.jackal.jdbc;
 
-import com.duncpro.rds.data.QueryResultRow;
+import com.duncpro.jackal.QueryResultRow;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.ResultSet;

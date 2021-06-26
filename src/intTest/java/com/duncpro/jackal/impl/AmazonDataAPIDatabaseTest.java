@@ -1,7 +1,7 @@
-package com.duncpro.rds.data.impl;
+package com.duncpro.jackal.impl;
 
-import com.duncpro.rds.data.AsyncDatabase;
-import com.duncpro.rds.data.CreatePeopleTransaction;
+import com.duncpro.jackal.AsyncDatabase;
+import com.duncpro.jackal.CreatePeopleTransaction;
 import lombok.Value;
 import org.junit.After;
 import org.junit.Assert;

@@ -1,7 +1,7 @@
-package com.duncpro.rds.data.impl;
+package com.duncpro.jackal.impl;
 
-import com.duncpro.rds.data.StatementBuilder;
-import com.duncpro.rds.data.AsyncDatabaseTransaction;
+import com.duncpro.jackal.AsyncDatabaseTransaction;
+import com.duncpro.jackal.StatementBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

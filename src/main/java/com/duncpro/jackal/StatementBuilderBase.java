@@ -1,14 +1,10 @@
-package com.duncpro.rds.data;
+package com.duncpro.jackal;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.Spliterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 public abstract class StatementBuilderBase implements StatementBuilder {
     protected final String parameterizedSQL;

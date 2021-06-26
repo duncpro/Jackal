@@ -1,7 +1,7 @@
-package com.duncpro.rds.data.jdbc;
+package com.duncpro.jackal.jdbc;
 
-import com.duncpro.rds.data.AsyncDatabaseTransaction;
-import com.duncpro.rds.data.StatementBuilder;
+import com.duncpro.jackal.StatementBuilder;
+import com.duncpro.jackal.AsyncDatabaseTransaction;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Connection;
