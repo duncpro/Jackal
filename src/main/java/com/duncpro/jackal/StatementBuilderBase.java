@@ -28,8 +28,8 @@ public abstract class StatementBuilderBase implements StatementBuilder {
     public StatementBuilder withArguments(Object... args) {
         if (args.length + this.args.size() > paramCount) {
             throw new IndexOutOfBoundsException("There are " + paramCount + " parameters in the statement" +
-                    " but " + args.length + " arguments have been given. (Did you forget to include a parameter" +
-                    " in the statement?)");
+                    " but " + (args.length + this.args.size()) + " arguments have been given. (Did you forget to " +
+                    "include a parameter in the statement?)");
         }
         this.args.addAll(
                 Arrays.stream(args).collect(toList())
