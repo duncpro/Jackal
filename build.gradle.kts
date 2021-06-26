@@ -1,5 +1,6 @@
 plugins {
     java
+    jacoco
 }
 
 val lombokVersion by extra { "1.18.20" }
@@ -48,9 +49,6 @@ dependencies {
     intTestImplementation("junit:junit:4.13")
     intTestImplementation("com.h2database:h2:1.4.200")
     intTestImplementation("org.slf4j:slf4j-simple:1.7.31")
-
-
-
 }
 
 tasks.getByName<Test>("test") {
@@ -66,4 +64,15 @@ val integrationTest = task<Test>("integrationTest") {
     shouldRunAfter("test")
 }
 
-tasks.check { dependsOn(integrationTest) }
+val jacocoTestReport by tasks.getting(JacocoReport::class) {
+    reports {
+        xml.isEnabled = true
+        html.isEnabled = false
+    }
+}
+
+
+tasks.check {
+    dependsOn(integrationTest)
+    dependsOn(jacocoTestReport)
+}

@@ -1,3 +1,6 @@
 language: java
 script:
   - ./gradlew check --info
+  - ./gradlew codeCoverageReport
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
