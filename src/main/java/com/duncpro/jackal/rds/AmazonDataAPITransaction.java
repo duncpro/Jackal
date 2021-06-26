@@ -9,11 +9,14 @@ import software.amazon.awssdk.services.rdsdata.model.CommitTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
 class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
     private final AmazonDataAPIDatabase db;
-    private final String transactionId;
+    final String id;
+
+    volatile AtomicInteger pendingOperations = new AtomicInteger(0);
 
     @Override
     public CompletableFuture<Void> rollback() {
@@ -21,17 +24,20 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
                 .secretArn(db.databaseSecretArn)
                 .resourceArn(db.databaseArn);
 
-        if (transactionId != null) {
-            requestBuilder.transactionId(transactionId);
+        if (id != null) {
+            requestBuilder.transactionId(id);
         }
+
+        pendingOperations.incrementAndGet();
 
         return db.rdsDataClient.rollbackTransaction(requestBuilder.build())
                 .whenComplete((response, $) -> {
                     if (response != null) {
-                        logger.debug("Database Transaction (id: " + transactionId + ") rollback finalized with" +
+                        logger.debug("Database Transaction (id: " + id + ") rollback finalized with" +
                                 " transaction status " + response.transactionStatus() + ".");
                     }
                 })
+                .whenComplete(($, $$) -> pendingOperations.decrementAndGet())
                 .thenApply(($) -> null);
     }
 
@@ -41,23 +47,34 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
                 .secretArn(db.databaseSecretArn)
                 .resourceArn(db.databaseArn);
 
-        if (transactionId != null) {
-            requestBuilder.transactionId(transactionId);
+        if (id != null) {
+            requestBuilder.transactionId(id);
         }
+
+        pendingOperations.incrementAndGet();
 
         return db.rdsDataClient.commitTransaction(requestBuilder.build())
                 .whenComplete((response, $) -> {
                     if (response != null) {
-                        logger.debug("Database Transaction (id: " + transactionId + ") commit finalized with" +
+                        logger.debug("Database Transaction (id: " + id + ") commit finalized with" +
                                 " transaction status " + response.transactionStatus() + ".");
                     }
                 })
+                .whenComplete(($, $$) -> pendingOperations.decrementAndGet())
                 .thenApply(($) -> null);
+    }
+
+    public void finalizeTransaction() {
+        if (this.pendingOperations.get() != 0) {
+            throw new IllegalStateException("Transaction procedure returned before all operations" +
+                    " were completed. You should join all promises and terminate all streams before" +
+                    " returning.");
+        }
     }
 
     @Override
     public StatementBuilder prepareStatement(String parameterizedSQL) {
-        return new AmazonDataAPIStatementBuilder(db, parameterizedSQL, transactionId);
+        return new AmazonDataAPIStatementBuilder(db, parameterizedSQL, this);
     }
 
     private final static Logger logger = LoggerFactory.getLogger(AmazonDataAPITransaction.class);

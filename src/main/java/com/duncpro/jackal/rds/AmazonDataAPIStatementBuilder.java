@@ -13,19 +13,17 @@ import software.amazon.awssdk.services.rdsdata.model.SqlParameter;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
     private final AmazonDataAPIDatabase db;
-    private final String transactionId;
+    private final AmazonDataAPITransaction transaction;
 
-    AmazonDataAPIStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable String transactionId) {
+    AmazonDataAPIStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable AmazonDataAPITransaction transaction) {
         super(sql);
         this.db = db;
-        this.transactionId = transactionId;
+        this.transaction = transaction;
     }
 
     protected String compileSQL() {
@@ -47,8 +45,8 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
                 .includeResultMetadata(true)
                 .parameters(compileArgs());
 
-        if (transactionId != null) {
-            requestBuilder.transactionId(transactionId);
+        if (transaction != null) {
+            requestBuilder.transactionId(transaction.id);
         }
 
         return requestBuilder.build();
@@ -56,18 +54,34 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
 
     @Override
     protected Stream<QueryResultRow> executeQueryImpl() {
+        if (transaction != null)
+            transaction.pendingOperations.incrementAndGet();
+
         final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
                 .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
         return StreamUtil.unwrapStream(resultStreamFuture)
-                .map(QueryResultRow::fromMap);
+                .map(QueryResultRow::fromMap)
+                .onClose(() -> {
+                    if (transaction != null) {
+                        transaction.pendingOperations.decrementAndGet();
+                    }
+                });
     }
 
     @Override
     protected CompletableFuture<Void> executeUpdateImpl() {
+        if (transaction != null)
+            transaction.pendingOperations.incrementAndGet();
+
         return db.rdsDataClient
                 .executeStatement(compileAWSRequest())
+                .whenComplete(($, $$) -> {
+                    if (transaction != null) {
+                        transaction.pendingOperations.decrementAndGet();
+                    }
+                })
                 .thenApply(($) -> null);
     }
 

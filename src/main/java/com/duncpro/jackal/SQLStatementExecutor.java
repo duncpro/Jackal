@@ -2,6 +2,9 @@ package com.duncpro.jackal;
 
 import org.intellij.lang.annotations.Language;
 
+import javax.annotation.concurrent.ThreadSafe;
+
+@ThreadSafe
 interface SQLStatementExecutor {
     /**
      * Creates a new standalone statement which is automatically committed upon completion.

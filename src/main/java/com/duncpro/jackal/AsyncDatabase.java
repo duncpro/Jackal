@@ -1,5 +1,6 @@
 package com.duncpro.jackal;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -7,6 +8,7 @@ import java.util.stream.Stream;
 /**
  * A minimalistic asynchronous SQL API inspired by JDBC.
  */
+@ThreadSafe
 public interface AsyncDatabase extends SQLStatementExecutor {
     /**
      * Creates a new transaction and runs the provided transaction procedure asynchronously.
