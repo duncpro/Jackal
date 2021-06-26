@@ -1,4 +1,6 @@
 # Amazon RDS Data API Wrapper
+![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)
+
 Small wrapper around RDS Data API (AWS SDK v2).
 
 ## Getting Started
