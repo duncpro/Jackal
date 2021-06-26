@@ -1,4 +1,4 @@
-package com.duncpro.jackal.impl;
+package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.StatementBuilderBase;

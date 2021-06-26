@@ -1,4 +1,4 @@
-package com.duncpro.jackal.impl;
+package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.StatementBuilder;
 import com.duncpro.jackal.AsyncDatabase;
