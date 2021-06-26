@@ -29,6 +29,8 @@ repositories {
 
 dependencies {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
+    implementation("org.jetbrains:annotations:21.0.1")
+
     implementation(platform("software.amazon.awssdk:bom:2.15.0"))
     implementation("software.amazon.awssdk:rdsdata")
     implementation("org.slf4j:slf4j-api:1.7.31")
