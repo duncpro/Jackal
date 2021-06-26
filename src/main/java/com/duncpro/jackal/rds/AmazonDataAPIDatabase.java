@@ -13,8 +13,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-
 /**
  * Exposes {@link RdsDataClient} as an {@link AsyncDatabase}.
  */
@@ -53,10 +51,7 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
     @Override
     public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
         return startTransaction()
-                .thenCompose(transaction ->
-                        supplyAsync(() -> procedure.apply(transaction))
-                                .whenComplete(($, $$) -> transaction.finalizeTransaction())
-                );
+                .thenApplyAsync(procedure, transactionExecutor);
     }
 
     @Override

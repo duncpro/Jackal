@@ -16,8 +16,6 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
     private final AmazonDataAPIDatabase db;
     final String id;
 
-    volatile AtomicInteger pendingOperations = new AtomicInteger(0);
-
     @Override
     public CompletableFuture<Void> rollback() {
         final var requestBuilder = RollbackTransactionRequest.builder()
@@ -28,8 +26,6 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
             requestBuilder.transactionId(id);
         }
 
-        pendingOperations.incrementAndGet();
-
         return db.rdsDataClient.rollbackTransaction(requestBuilder.build())
                 .whenComplete((response, $) -> {
                     if (response != null) {
@@ -37,7 +33,6 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
                                 " transaction status " + response.transactionStatus() + ".");
                     }
                 })
-                .whenComplete(($, $$) -> pendingOperations.decrementAndGet())
                 .thenApply(($) -> null);
     }
 
@@ -51,8 +46,6 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
             requestBuilder.transactionId(id);
         }
 
-        pendingOperations.incrementAndGet();
-
         return db.rdsDataClient.commitTransaction(requestBuilder.build())
                 .whenComplete((response, $) -> {
                     if (response != null) {
@@ -60,16 +53,7 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
                                 " transaction status " + response.transactionStatus() + ".");
                     }
                 })
-                .whenComplete(($, $$) -> pendingOperations.decrementAndGet())
                 .thenApply(($) -> null);
-    }
-
-    public void finalizeTransaction() {
-        if (this.pendingOperations.get() != 0) {
-            throw new IllegalStateException("Transaction procedure returned before all operations" +
-                    " were completed. You should join all promises and terminate all streams before" +
-                    " returning.");
-        }
     }
 
     @Override
