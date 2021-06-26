@@ -4,7 +4,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-@Not
+@NotThreadSafe
 public interface StatementBuilder {
     StatementBuilder setString(int paramIndex, String arg);
     StatementBuilder setLong(int paramIndex, Long arg);
