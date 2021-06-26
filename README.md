@@ -34,7 +34,7 @@ final AsyncDatabase db = new DataSourceAsyncDatabase(/* */);
 ```
 ### Transactions
 ```java
-asyncDb.runTransactionAsync(transaction -> {
+asyncDb.commitTransactionAsync(transaction -> {
         transaction.prepareStatement("CREATE TABLE TABLE_A (COLUMN_A varchar);")
             .executeUpdate()
             .join();
@@ -47,8 +47,7 @@ asyncDb.runTransactionAsync(transaction -> {
         transaction.commit().join();
 });
 ```
-- Use `commitTransactionAsync(Callback)` to implicitly commit the transaction upon
-non-exceptional completion of the callback.
+- Use `runTransactionAsync(Callback)` if you would like to explicitly commit the transaction from within the callback.
 - Both `commitTransactionAsync` and `runTransactionAsync` return a `CompletableFuture`
 which encapsulates the return value of the callback function.
 
