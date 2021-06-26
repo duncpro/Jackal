@@ -1,8 +1,10 @@
 package com.duncpro.rds.data.impl;
 
 import com.duncpro.rds.data.AsyncDatabase;
+import com.duncpro.rds.data.CreatePeopleTransaction;
 import lombok.Value;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
@@ -11,8 +13,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -74,28 +78,16 @@ public class AmazonRDSAsyncDatabaseWrapperTest {
     }
 
     @Test
-    public void selectRecordTransaction() {
-        final var retrievedValue = db.commitTransactionAsync(transaction -> {
-            transaction.prepareStatement(
-                    "CREATE TABLE IF NOT EXISTS table_b (col_a varchar, col_b bigint, col_c boolean);")
-                    .executeUpdate()
-                    .join();
+    public void testTransaction() {
+        final var expected = Set.of("Will", "Allison", "Madison");
 
-            transaction.prepareStatement("INSERT INTO table_b VALUES (?, ?, ?);")
-                    .setString(0, "hello")
-                    .setLong(1, 100L)
-                    .setBoolean(2, true)
-                    .executeUpdate()
-                    .join();
+        db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
 
-            return transaction.prepareStatement("SELECT * FROM table_b;")
-                    .executeQuery()
-                    .findFirst()
-                    .orElseThrow(AssertionError::new); // We just inserted a record.
-        });
+        final var actual = db.prepareStatement("SELECT first_name FROM people;")
+                .executeQuery()
+                .map(row -> row.getString("first_name"))
+                .collect(Collectors.toSet());
 
-        assertEquals("hello", retrievedValue.join().getString("col_a"));
-        assertEquals(100L, retrievedValue.join().getLong("col_b"));
-        assertEquals(true, retrievedValue.join().getBoolean("col_c"));
+        Assert.assertEquals(expected, actual);
     }
 }

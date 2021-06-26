@@ -1,15 +1,17 @@
 package com.duncpro.rds.data.jdbc;
 
+import com.duncpro.rds.data.CreatePeopleTransaction;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import static org.junit.Assert.*;
+import java.util.stream.Collectors;
 
 public class DataSourceAsyncDatabaseTest {
     private final BasicDataSource dataSource = new BasicDataSource();
@@ -17,7 +19,7 @@ public class DataSourceAsyncDatabaseTest {
     @Before
     public void startDatabase() throws SQLException {
         dataSource.setDriverClassName("org.h2.Driver");
-        dataSource.setUrl("jdbc:h2:mem:test");
+        dataSource.setUrl("jdbc:h2:mem:test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE");
         dataSource.start();
     }
 
@@ -35,26 +37,19 @@ public class DataSourceAsyncDatabaseTest {
         sqlExecutor.shutdown();
     }
 
-    final DataSourceAsyncDatabase asyncDb = new DataSourceAsyncDatabase(dataSource, transactionExecutor, sqlExecutor);
+    final DataSourceAsyncDatabase db = new DataSourceAsyncDatabase(dataSource, transactionExecutor, sqlExecutor);
 
     @Test
-    public void selectRecordTransaction() {
-        final var retrievedValue = asyncDb.commitTransactionAsync(transaction -> {
-            transaction.prepareStatement("CREATE TABLE TABLE_A (COLUMN_A varchar);")
-                    .executeUpdate()
-                    .join();
+    public void testTransactions() {
+        Set<String> expected = Set.of("David", "Helen", "Austin");
 
-            transaction.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
-                    .setString(0, "hello")
-                    .executeUpdate()
-                    .join();
+        db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
 
-            return transaction.prepareStatement("SELECT COLUMN_A FROM TABLE_A;")
-                    .executeQuery()
-                    .map(row -> row.getString("COLUMN_A"))
-                    .findFirst().orElseThrow(AssertionError::new); // We just inserted an element
-        });
+        final var actual = db.prepareStatement("SELECT first_name FROM people;")
+                .executeQuery()
+                .map(row -> row.getString("first_name"))
+                .collect(Collectors.toSet());
 
-        assertEquals("hello", retrievedValue.join());
+        Assert.assertEquals(expected, actual);
     }
 }

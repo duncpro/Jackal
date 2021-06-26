@@ -1,4 +1,4 @@
-# Amazon RDS Data API Wrapper
+# Jackal
 ![Build Status](https://travis-ci.com/duncpro/rds-data-api-wrapper.svg?branch=master)
 
 Wrapper around RDS Data API (AWS SDK v2) inspired by the standard JDBC API.
