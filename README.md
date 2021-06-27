@@ -13,12 +13,15 @@ final AsyncDatabase db = new AmazonDataAPIDatabase(/* */);
 ### Fully embraces Java 8's CompletableFuture
 All updates return `CompletableFuture` and all queries return `Stream`.
 ```java
-db.prepareStatement("SELECT * FROM person")
-        .executeQuery()
-        .map(row -> row.getString("first_name"))
-        .collect(Collectors.toSet());
+final Set<String> firstNames;
+try (final var results = db.prepareStatement("SELECT * FROM person")
+        .executeQuery()) {
+    
+        firstNames = results.map(row -> row.getString("first_name"))
+            .collect(Collectors.toSet());
+}
+
 ```
-NOTE: You should explicitly close any streams which are produced by this library. 
 ### JDBC-like Parameterization
 ```java
 db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")

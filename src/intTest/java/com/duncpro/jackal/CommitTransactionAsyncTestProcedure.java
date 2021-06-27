@@ -13,12 +13,10 @@ public class CommitTransactionAsyncTestProcedure implements Consumer<AsyncDataba
 
         db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
 
-        final var results = db.prepareStatement("SELECT first_name FROM people;")
-                .executeQuery();
-
         Set<String> actual;
 
-        try (results) {
+        try (final var results = db.prepareStatement("SELECT first_name FROM people;")
+                .executeQuery()) {
             actual = results.map(row -> row.getString("first_name"))
                     .collect(Collectors.toSet());
         }
