@@ -5,6 +5,7 @@ import com.duncpro.jackal.StatementBuilderBase;
 import com.duncpro.jackal.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementResponse;
 import software.amazon.awssdk.services.rdsdata.model.Field;
@@ -59,7 +60,7 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
                 .thenApply(Collection::stream);
 
         return StreamUtil.unwrapStream(resultStreamFuture)
-                .map(QueryResultRow::fromMap);
+                .map(AmazonDataAPIRow::new);
     }
 
     @Override
@@ -76,25 +77,27 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
             final var arg = args.get(i);
             final var paramBuilder = SqlParameter.builder().name(String.valueOf(i));
 
-            final Field field;
+            final Field.Builder fieldBuilder = Field.builder();
 
-            if (arg instanceof String) {
-                field = Field.builder()
-                        .stringValue((String) arg)
-                        .build();
+            if (arg == null) {
+                fieldBuilder.isNull(true);
+            } else if (arg instanceof String) {
+                fieldBuilder.stringValue((String) arg);
+            } else if (arg instanceof Integer) {
+                fieldBuilder.longValue(Long.valueOf((Integer) arg));
             } else if (arg instanceof Long) {
-                field = Field.builder()
-                        .longValue((Long) arg)
-                        .build();
+                fieldBuilder.longValue((Long) arg);
             } else if (arg instanceof Boolean) {
-                field = Field.builder()
-                        .booleanValue((Boolean) arg)
-                        .build();
+                fieldBuilder.booleanValue((Boolean) arg);
+            } else if (arg instanceof Double) {
+                fieldBuilder.doubleValue((Double) arg);
+            } else if (arg instanceof byte[]) {
+                fieldBuilder.blobValue(SdkBytes.fromByteArray((byte[]) arg));
             } else {
                 throw new AssertionError("Unexpected type: " + arg.getClass().getName());
             }
 
-            paramBuilder.value(field);
+            paramBuilder.value(fieldBuilder.build());
 
             awsStatementParams[i] = paramBuilder.build();
         }
@@ -102,29 +105,17 @@ class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
         return awsStatementParams;
     }
 
-    private static List<Map<String, Object>> extractRowsFromAWSResponse(ExecuteStatementResponse awsResponse) {
-        final var rowList = new ArrayList<Map<String, Object>>();
+    private static List<Map<String, Field>> extractRowsFromAWSResponse(ExecuteStatementResponse awsResponse) {
+        final var rowList = new ArrayList<Map<String, Field>>();
         for (final var awsRowRecord : awsResponse.records()) {
-            final var row = new HashMap<String, Object>();
+            final var row = new HashMap<String, Field>();
 
             for (int columnIndex = 0; columnIndex < awsResponse.columnMetadata().size(); columnIndex++) {
                 final var columnName = awsResponse.columnMetadata().get(columnIndex).name();
                 final var typeName = awsResponse.columnMetadata().get(columnIndex).typeName();
                 final var serializedValue = awsRowRecord.get(columnIndex);
 
-                Object deserializedValue;
-
-                if (typeName.equals("varchar")) {
-                    deserializedValue = serializedValue.stringValue();
-                } else if (typeName.equals("bool")) {
-                    deserializedValue = serializedValue.booleanValue();
-                } else if (typeName.contains("int")) {
-                    deserializedValue = serializedValue.longValue();
-                } else {
-                    throw new AssertionError("Unexpected data type: " + typeName);
-                }
-
-                row.put(columnName, deserializedValue);
+                row.put(columnName, serializedValue);
             }
 
             rowList.add(row);

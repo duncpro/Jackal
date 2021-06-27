@@ -14,10 +14,11 @@ final AsyncDatabase db = new AmazonDataAPIDatabase(/* */);
 All updates return `CompletableFuture` and all queries return `Stream`.
 ```java
 final Set<String> firstNames;
-try (final var results = db.prepareStatement("SELECT * FROM person")
+try (final var results = db.prepareStatement("SELECT first_name FROM person")
         .executeQuery()) {
     
-        firstNames = results.map(row -> row.getString("first_name"))
+        firstNames = results.map(row -> row.get("first_name", String.class))
+            .map(Optional::orElseThrow) // first_name is a NOT NULL column
             .collect(Collectors.toSet());
 }
 

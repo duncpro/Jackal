@@ -2,14 +2,13 @@ package com.duncpro.jackal;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.Map;
+import java.util.Optional;
 
 @ThreadSafe
 public interface QueryResultRow {
-    String getString(String columnName);
-    long getLong(String columnName);
-    Boolean getBoolean(String columnName);
+    <T> Optional<T> get(String columnName, Class<T> javaType);
 
-    public static QueryResultRow fromMap(Map<String, Object> map) {
+    static QueryResultRow fromMap(Map<String, Object> map) {
         return new MapResultRow(map);
     }
 }

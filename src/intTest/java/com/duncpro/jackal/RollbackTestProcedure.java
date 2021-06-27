@@ -2,6 +2,7 @@ package com.duncpro.jackal;
 
 import org.junit.Assert;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
@@ -11,7 +12,7 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
                 .executeUpdate()
                 .join();
 
-        db.prepareStatement("CREATE TABLE dogs (name VARCHAR);")
+        db.prepareStatement("CREATE TABLE dogs (name VARCHAR NOT NULL);")
                 .executeUpdate()
                 .join();
 
@@ -35,7 +36,8 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
 
         try (final var results = db.prepareStatement("SELECT * FROM dogs;")
                 .executeQuery()) {
-            cocoaExists = results.map(row -> row.getString("name"))
+            cocoaExists = results.map(row -> row.get("name", String.class))
+                    .map(Optional::orElseThrow) // name is a NOT NULL column
                     .anyMatch((name) -> name.equals("Cocoa"));
         }
 

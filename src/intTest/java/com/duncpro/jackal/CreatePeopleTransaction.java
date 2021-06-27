@@ -17,7 +17,7 @@ public class CreatePeopleTransaction implements Function<AsyncDatabaseTransactio
                 .executeUpdate()
                 .join();
 
-        db.prepareStatement("CREATE TABLE people (first_name VARCHAR);")
+        db.prepareStatement("CREATE TABLE people (first_name VARCHAR NOT NULL);")
                 .executeUpdate()
                 .join();
 
