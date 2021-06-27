@@ -34,34 +34,30 @@ public class DataSourceAsyncWrapper implements AsyncDatabase {
         }, sqlExecutor);
     }
 
-    private CompletableFuture<Void> setAutoCommit(Connection connection, boolean autoCommit) {
-        return runAsync(() -> {
-            try {
-                connection.setAutoCommit(autoCommit);
-            } catch (SQLException e) {
-                throw new AsyncSQLException(e);
-            }
-        }, sqlExecutor);
+    private void setAutoCommit(Connection connection, boolean autoCommit) {
+        try {
+            connection.setAutoCommit(autoCommit);
+        } catch (SQLException e) {
+            throw new AsyncSQLException(e);
+        }
     }
 
-    private CompletableFuture<Void> close(Connection connection) {
-        return runAsync(() -> {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                throw new AsyncSQLException(e);
-            }
-        }, transactionExecutor);
+    private void close(Connection connection) {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new AsyncSQLException(e);
+        }
     }
 
     public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
         return getConnection()
                 .thenCompose(connection ->
-                        setAutoCommit(connection, false)
+                        runAsync(() -> setAutoCommit(connection, false), sqlExecutor)
                                 .thenApply(($) -> new JdbcTransaction(connection, sqlExecutor))
                                 .thenApplyAsync(procedure, transactionExecutor)
-                                .whenCompleteAsync(($, $$) -> setAutoCommit(connection, true).join())
-                                .whenCompleteAsync(($, $$) -> close(connection).join())
+                                .whenCompleteAsync(($, $$) -> setAutoCommit(connection, true), sqlExecutor)
+                                .whenCompleteAsync(($, $$) -> close(connection), sqlExecutor)
                 );
     }
 
