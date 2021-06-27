@@ -57,7 +57,6 @@ which encapsulates the return value of the callback function.
 
 ## Gotchas
 - Unlike in JDBC, indexes for statement parameters start at `0` not `1`.
-- Only numerical, boolean, and varchar data types are supported.
 - This library has a transitive dependency on the AWS Java SDK v2.
 
 ## Motivations
