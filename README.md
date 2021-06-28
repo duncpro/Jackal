@@ -72,7 +72,7 @@ The official [Official Data API Client Library](https://github.com/awslabs/rds-d
     
 
 ## DTO
-Recommended approach to mapping rows to objects.
+Recommended approach for mapping rows to objects.
 ```java
 Dog convertRowToObj(QueryResultRow row) {
     final var dog = new Dog();
