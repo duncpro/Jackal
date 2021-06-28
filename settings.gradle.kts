@@ -1,2 +1,2 @@
-rootProject.name = "rds-data-api-wrapper"
+rootProject.name = "jackal"
 
