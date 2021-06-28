@@ -72,4 +72,23 @@ The official [Official Data API Client Library](https://github.com/awslabs/rds-d
     
 
 ## DTO
-Mapping results to POJOs is outside the scope of this project.
+Recommended approach to mapping rows to objects.
+```java
+Dog convertRowToObj(QueryResultRow row) {
+    final var dog = new Dog();
+    dog.name = row.get("name", String.class);
+    dog.breed = row.get("breed", String.class);
+    return dog;
+}
+
+CompletableFuture<List<Dog>> getDogs() {
+        try (final var results = db.prepareStatement("SELECT name, breed FROM dogs;")
+            .executeQuery()) {
+            
+            return results.map(this::convertRowToObj)
+                .collect(Collectors.toList());
+        }
+}
+
+```
+
