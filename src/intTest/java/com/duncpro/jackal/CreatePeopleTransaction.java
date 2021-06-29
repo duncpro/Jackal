@@ -13,7 +13,7 @@ public class CreatePeopleTransaction implements Function<AsyncDatabaseTransactio
 
     @Override
     public Void apply(AsyncDatabaseTransaction db) {
-        db.prepareStatement("DROP TABLE IF EXISTS people")
+        db.prepareStatement("DROP TABLE IF EXISTS people;")
                 .executeUpdate()
                 .join();
 

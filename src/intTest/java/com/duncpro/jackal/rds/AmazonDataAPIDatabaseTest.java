@@ -2,10 +2,7 @@ package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.*;
 import lombok.Value;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 
 import java.io.IOException;
@@ -89,5 +86,11 @@ public class AmazonDataAPIDatabaseTest {
     @Test
     public void testImplicitRollback() {
         new ImplicitRollbackTestProcedure().accept(db);
+    }
+
+    @Test
+    @Ignore
+    public void parallelizationBenchmark() {
+        new ParallelizationBenchmark().accept(db);
     }
 }

@@ -1,6 +1,7 @@
 plugins {
     java
     jacoco
+    `maven-publish`
 }
 
 val lombokVersion by extra { "1.18.20" }
@@ -82,3 +83,21 @@ tasks.check {
     dependsOn(integrationTest)
     finalizedBy(jacocoTestReport)
 }
+
+//publishing {
+//    repositories {
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/OWNER/REPOSITORY")
+//            credentials {
+//                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
+//                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+//            }
+//        }
+//    }
+//    publications {
+//        create<MavenPublication>("gpr") {
+//            from(components["java"])
+//        }
+//    }
+//}

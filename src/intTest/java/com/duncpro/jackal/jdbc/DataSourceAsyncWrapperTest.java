@@ -3,10 +3,7 @@ package com.duncpro.jackal.jdbc;
 import com.duncpro.jackal.*;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.intellij.lang.annotations.Language;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -55,5 +52,11 @@ public class DataSourceAsyncWrapperTest {
     @Test
     public void testImplicitRollback() {
         new ImplicitRollbackTestProcedure().accept(db);
+    }
+
+    @Test
+    @Ignore
+    public void parallelizationBenchmark() {
+        new ParallelizationBenchmark().accept(db);
     }
 }
