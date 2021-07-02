@@ -55,6 +55,9 @@ public class DataSourceAsyncWrapperTest {
     }
 
     @Test
+    public void testTypeConversions() { new TypeTestingProcedure().apply(db); }
+
+    @Test
     @Ignore
     public void parallelizationBenchmark() {
         new ParallelizationBenchmark().accept(db);

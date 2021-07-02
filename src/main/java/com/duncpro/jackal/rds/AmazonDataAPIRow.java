@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.rdsdata.model.Field;
 
 import javax.swing.text.html.Option;
+import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
 
@@ -35,7 +36,10 @@ public class AmazonDataAPIRow implements QueryResultRow {
             unwrappedValue = (T) valueWrapper.blobValue().asByteArray();
         } else if (javaType == Double.class || javaType == double.class) {
             unwrappedValue = (T) valueWrapper.doubleValue();
-        } else {
+        } else if (javaType == BigDecimal.class) {
+            unwrappedValue = (T) new BigDecimal(valueWrapper.stringValue());
+        }
+        else {
             throw new IllegalArgumentException("Deserializing " + javaType.getName() + " is unsupported.");
         }
 
