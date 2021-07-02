@@ -85,3 +85,11 @@ tasks.check {
     dependsOn(integrationTest)
     finalizedBy(jacocoTestReport)
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            from(components["java"])
+        }
+    }
+}
