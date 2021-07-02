@@ -62,7 +62,9 @@ val integrationTest = task<Test>("integrationTest") {
 
     testClassesDirs = sourceSets["intTest"].output.classesDirs
     classpath = sourceSets["intTest"].runtimeClasspath
+
     shouldRunAfter("test")
+    onlyIf { !project.hasProperty("skipIntegrationTests") }
 }
 
 val jacocoTestReport by tasks.getting(JacocoReport::class) {

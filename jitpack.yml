@@ -1,0 +1,1 @@
+install: ./gradlew build publishToMavenLocal -PskipIntegrationTests
