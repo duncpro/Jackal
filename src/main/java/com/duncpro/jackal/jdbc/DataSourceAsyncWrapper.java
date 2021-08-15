@@ -17,6 +17,9 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
  * Implementation of {@link AsyncDatabase} which wraps {@link DataSource}.
+ *
+ * Warning: Do not use the same {@link ExecutorService} for both {@code transactionExecutor}
+ * and {@code sqlExecutor}. By doing so you risk deadlock when using fixed-size thread pools.
  */
 @RequiredArgsConstructor
 public class DataSourceAsyncWrapper implements AsyncDatabase {
