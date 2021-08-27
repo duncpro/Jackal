@@ -60,7 +60,7 @@ which encapsulates the return value of the callback function.
 - This library has a transitive dependency on the AWS Java SDK v2.
 
 ## Motivations
-The official [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
+The [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
   lacking in a few key categories.
   - It has a dependency on AWS SDK v1 and can not support
     CompletableFuture. 
