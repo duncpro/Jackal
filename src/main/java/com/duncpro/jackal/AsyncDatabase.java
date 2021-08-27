@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 public abstract class AsyncDatabase implements SQLStatementExecutor {
     protected abstract CompletableFuture<AsyncDatabaseTransaction> startTransactionImpl();
 
-    public final FutureAsyncDatabaseTransaction startTransaction() {
+    public final AsyncDatabaseTransaction startTransaction() {
         return new FutureAsyncDatabaseTransaction(startTransactionImpl());
     }
 
