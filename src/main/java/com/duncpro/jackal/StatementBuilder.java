@@ -27,11 +27,12 @@ public interface StatementBuilder {
     }
 
     /**
-     * Executes a query on the database and returns the result as a stream of {@link QueryResultRow}.
+     * Returns a stream containing the results of the query. Since {@link Stream} is lazy the query will
+     * not be executed until a terminal operation is performed.
      * To prevent resource leaks the caller should always close the stream after use.
      * @throws IllegalStateException if one or more parameters are missing arguments.
      */
-    Stream<QueryResultRow> executeQuery();
+    Stream<QueryResultRow> query();
 
     /**
      * Executes an update on the database and returns a {@link CompletableFuture} which completes after the

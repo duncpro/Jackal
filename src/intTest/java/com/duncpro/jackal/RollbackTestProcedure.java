@@ -35,7 +35,7 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
         boolean cocoaExists;
 
         try (final var results = db.prepareStatement("SELECT * FROM dogs;")
-                .executeQuery()) {
+                .query()) {
             cocoaExists = results.map(row -> row.get("name", String.class))
                     .map(Optional::orElseThrow) // name is a NOT NULL column
                     .anyMatch((name) -> name.equals("Cocoa"));

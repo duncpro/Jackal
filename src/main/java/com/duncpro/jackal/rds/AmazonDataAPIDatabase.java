@@ -1,5 +1,6 @@
 package com.duncpro.jackal.rds;
 
+import com.duncpro.jackal.FutureAsyncDatabaseTransaction;
 import com.duncpro.jackal.StatementBuilder;
 import com.duncpro.jackal.AsyncDatabase;
 import com.duncpro.jackal.AsyncDatabaseTransaction;
@@ -17,7 +18,7 @@ import java.util.function.Function;
  * Exposes {@link RdsDataClient} as an {@link AsyncDatabase}.
  */
 @ThreadSafe
-public class AmazonDataAPIDatabase implements AsyncDatabase {
+public class AmazonDataAPIDatabase extends AsyncDatabase {
     final RdsDataAsyncClient rdsDataClient;
     final String databaseArn;
     final String databaseSecretArn;
@@ -37,7 +38,8 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
         this.transactionExecutor = transactionExecutor;
     }
 
-    private CompletableFuture<AmazonDataAPITransaction> startTransaction() {
+    @Override
+    protected CompletableFuture<AsyncDatabaseTransaction> startTransactionImpl() {
         final var request = BeginTransactionRequest.builder()
                 .secretArn(databaseSecretArn)
                 .resourceArn(databaseArn)
@@ -50,7 +52,7 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
 
     @Override
     public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
-        return startTransaction()
+        return startTransactionImpl()
                 .thenApplyAsync(procedure, transactionExecutor);
     }
 

@@ -1,5 +1,7 @@
 package com.duncpro.jackal;
 
+import org.intellij.lang.annotations.Language;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.*;
 
 public abstract class StatementBuilderBase implements StatementBuilder {
+    @Language("SQL")
     protected final String parameterizedSQL;
     protected final int paramCount;
     protected final List<Object> args;
@@ -34,7 +37,7 @@ public abstract class StatementBuilderBase implements StatementBuilder {
         return this;
     }
 
-    public final Stream<QueryResultRow> executeQuery() {
+    public final Stream<QueryResultRow> query() {
         if (args.size() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }

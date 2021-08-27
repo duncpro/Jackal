@@ -9,7 +9,13 @@ import java.util.stream.Stream;
  * A minimalistic asynchronous SQL API inspired by JDBC.
  */
 @ThreadSafe
-public interface AsyncDatabase extends SQLStatementExecutor {
+public abstract class AsyncDatabase implements SQLStatementExecutor {
+    protected abstract CompletableFuture<AsyncDatabaseTransaction> startTransactionImpl();
+
+    public final FutureAsyncDatabaseTransaction startTransaction() {
+        return new FutureAsyncDatabaseTransaction(startTransactionImpl());
+    }
+
     /**
      * Creates a new transaction and runs the provided transaction procedure asynchronously.
      *
@@ -19,7 +25,8 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      * {@link #commitTransactionAsync} can be used for implicit committal scenarios.
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure);
+    @Deprecated
+    public abstract <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure);
 
     /**
      * Creates a new transaction and executes the provided transaction procedure asynchronously. If an exception is
@@ -32,7 +39,8 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      *
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    default <T> CompletableFuture<T> commitTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
+    @Deprecated
+    public final  <T> CompletableFuture<T> commitTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
         return runTransactionAsync(transaction -> {
             final T returnValue;
             try {

@@ -17,7 +17,7 @@ public class CommitTransactionAsyncTestProcedure implements Consumer<AsyncDataba
         Set<String> actual;
 
         try (final var results = db.prepareStatement("SELECT first_name FROM people;")
-                .executeQuery()) {
+                .query()) {
             actual = results.map(row -> row.get("first_name", String.class))
                     .map(Optional::orElseThrow) // first_name is a NON NULL column
                     .collect(Collectors.toSet());

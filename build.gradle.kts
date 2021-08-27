@@ -50,6 +50,8 @@ dependencies {
     intTestImplementation("junit:junit:4.13")
     intTestImplementation("com.h2database:h2:1.4.200")
     intTestImplementation("org.slf4j:slf4j-simple:1.7.31")
+    intTestImplementation("io.projectreactor:reactor-core:3.4.9")
+
 }
 
 tasks.getByName<Test>("test") {

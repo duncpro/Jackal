@@ -2,7 +2,6 @@ package com.duncpro.jackal;
 
 import org.junit.Assert;
 
-import javax.annotation.processing.Completion;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 
@@ -38,7 +37,7 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
 
         try (final var colorResultStream = db.prepareStatement("SELECT * FROM colors WHERE name = ?")
                 .withArguments("red")
-                .executeQuery()) {
+                .query()) {
 
             colorCount = colorResultStream.count();
         }

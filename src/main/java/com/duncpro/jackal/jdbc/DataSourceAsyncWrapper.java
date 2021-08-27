@@ -22,7 +22,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  * and {@code sqlExecutor}. By doing so you risk deadlock when using fixed-size thread pools.
  */
 @RequiredArgsConstructor
-public class DataSourceAsyncWrapper implements AsyncDatabase {
+public class DataSourceAsyncWrapper extends AsyncDatabase {
     private final DataSource dataSource;
     private final ExecutorService transactionExecutor;
     private final ExecutorService sqlExecutor;
@@ -51,6 +51,11 @@ public class DataSourceAsyncWrapper implements AsyncDatabase {
         } catch (SQLException e) {
             throw new AsyncSQLException(e);
         }
+    }
+
+    @Override
+    protected CompletableFuture<AsyncDatabaseTransaction> startTransactionImpl() {
+        return null;
     }
 
     public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
