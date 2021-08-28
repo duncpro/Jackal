@@ -37,7 +37,7 @@ public abstract class StatementBuilderBase implements StatementBuilder {
         return this;
     }
 
-    public final Stream<QueryResultRow> query() {
+    public final Stream<QueryResultRow> executeQuery() {
         if (args.size() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }

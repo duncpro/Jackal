@@ -25,15 +25,4 @@ public class FutureAsyncDatabaseTransaction implements AsyncDatabaseTransaction 
         final var statementExecutorFuture = future.thenApply(transaction -> (SQLStatementExecutor) transaction);
         return new FutureStatementBuilder(statementExecutorFuture, parameterizedSQL);
     }
-
-    @Override
-    public void close() {
-        future.thenAccept(transaction -> {
-            try {
-                transaction.close();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 }

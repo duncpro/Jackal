@@ -5,6 +5,7 @@ import java.util.stream.Stream;
 
 public class FutureStatementBuilder extends StatementBuilderBase {
     private final CompletableFuture<SQLStatementExecutor> statementExecutorFuture;
+
     public FutureStatementBuilder(CompletableFuture<SQLStatementExecutor> statementExecutorFuture, String parameterizedSQL) {
         super(parameterizedSQL);
         this.statementExecutorFuture = statementExecutorFuture;
@@ -15,7 +16,7 @@ public class FutureStatementBuilder extends StatementBuilderBase {
         final var futureStream = statementExecutorFuture.thenApply(executor ->
             executor.prepareStatement(this.parameterizedSQL)
                     .withArguments(this.args)
-                    .query()
+                    .executeQuery()
         );
         return StreamUtil.unwrapStream(futureStream);
     }

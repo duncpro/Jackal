@@ -37,7 +37,7 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
 
         try (final var colorResultStream = db.prepareStatement("SELECT * FROM colors WHERE name = ?")
                 .withArguments("red")
-                .query()) {
+                .executeQuery()) {
 
             colorCount = colorResultStream.count();
         }

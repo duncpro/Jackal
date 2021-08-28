@@ -18,7 +18,6 @@ public class CallbacklessTransactionExample implements Consumer<AsyncDatabase> {
                 .doOnSuccess($ -> transaction.commit())
                 .doOnCancel(transaction::rollback)
                 .doOnError($ -> transaction.rollback())
-                .doFinally($ -> transaction.close())
                 .then().toFuture();
 
         processCompleted.join();
@@ -32,7 +31,7 @@ public class CallbacklessTransactionExample implements Consumer<AsyncDatabase> {
 
     private Flux<String> getUserNames(AsyncDatabaseTransaction transaction) {
         final var firstNamesStream = transaction.prepareStatement("SELECT * FROM users;")
-                .query()
+                .executeQuery()
                 .map(row -> row.get("user_name", String.class))
                 .map(userName -> userName.orElseThrow(AssertionError::new));
 

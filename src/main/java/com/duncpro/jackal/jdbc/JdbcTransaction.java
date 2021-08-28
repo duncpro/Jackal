@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 
@@ -18,20 +19,36 @@ class JdbcTransaction implements AsyncDatabaseTransaction {
 
     @Override
     public CompletableFuture<Void> rollback() {
-        return runAsync(() -> {
+        final Runnable rollbacker = () -> {
             try {
                 connection.rollback();
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
             }
-        }, executor);
+        };
+
+        return runAsync(rollbacker, executor)
+                .thenCompose($ -> this.close());
     }
 
     @Override
     public CompletableFuture<Void> commit() {
-        return runAsync(() -> {
+        final Runnable commiter = () -> {
             try {
                 connection.commit();
+            } catch (SQLException e) {
+                throw new AsyncSQLException(e);
+            }
+        };
+
+        return runAsync(commiter, executor)
+                .thenCompose($ -> this.close());
+    }
+
+    private CompletableFuture<Void> close() {
+        return runAsync(() -> {
+            try {
+                connection.close();
             } catch (SQLException e) {
                 throw new AsyncSQLException(e);
             }

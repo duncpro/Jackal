@@ -4,11 +4,8 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.CompletableFuture;
 
 @ThreadSafe
-public interface AsyncDatabaseTransaction extends SQLStatementExecutor, AutoCloseable {
+public interface AsyncDatabaseTransaction extends SQLStatementExecutor {
     CompletableFuture<Void> rollback();
 
     CompletableFuture<Void> commit();
-
-    @Override
-    void close();
 }

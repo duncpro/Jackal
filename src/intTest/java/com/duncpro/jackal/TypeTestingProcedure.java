@@ -23,7 +23,7 @@ public class TypeTestingProcedure implements Function<AsyncDatabase, Void> {
                 .join();
 
         final var result = db.prepareStatement("SELECT * FROM typeTestTable;")
-                .query()
+                .executeQuery()
                 .findFirst()
                 .orElseThrow();
 

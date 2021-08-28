@@ -25,7 +25,7 @@ public abstract class AsyncDatabase implements SQLStatementExecutor {
      * {@link #commitTransactionAsync} can be used for implicit committal scenarios.
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public abstract <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure);
 
     /**
@@ -39,7 +39,7 @@ public abstract class AsyncDatabase implements SQLStatementExecutor {
      *
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    @Deprecated
+    @Deprecated(forRemoval = true)
     public final  <T> CompletableFuture<T> commitTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
         return runTransactionAsync(transaction -> {
             final T returnValue;
