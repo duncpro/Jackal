@@ -12,7 +12,7 @@ public class CommitTransactionAsyncTestProcedure implements Consumer<AsyncDataba
     public void accept(AsyncDatabase db) {
         final var expected = Set.of("Will", "Allison", "Madison");
 
-        db.commitTransactionAsync(new CreatePeopleTransaction(expected)).join();
+        db.commitTransaction(new CreatePeopleTransaction(expected)).join();
 
         Set<String> actual;
 

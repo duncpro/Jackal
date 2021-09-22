@@ -16,10 +16,10 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      * All resources allocated as a result of the transaction are freed after the transaction procedure returns.
      *
      * {@link AsyncDatabaseTransaction#commit()} must be explicitly called. A variant of this function
-     * {@link #commitTransactionAsync} can be used for implicit committal scenarios.
+     * {@link #commitTransaction} can be used for implicit committal scenarios.
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure);
+    <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure);
 
     /**
      * Creates a new transaction and executes the provided transaction procedure asynchronously. If an exception is
@@ -32,8 +32,8 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      *
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    default <T> CompletableFuture<T> commitTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
-        return runTransactionAsync(transaction -> {
+    default <T> CompletableFuture<T> commitTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
+        return runTransaction(transaction -> {
             final T returnValue;
             try {
                 returnValue = procedure.apply(transaction);

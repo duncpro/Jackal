@@ -49,7 +49,7 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
     }
 
     @Override
-    public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
+    public <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
         return startTransaction()
                 .thenApplyAsync(procedure, transactionExecutor);
     }

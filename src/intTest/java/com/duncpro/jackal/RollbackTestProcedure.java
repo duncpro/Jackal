@@ -21,7 +21,7 @@ public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
                 .executeUpdate()
                 .join();
 
-        db.runTransactionAsync(t -> {
+        db.runTransaction(t -> {
             t.prepareStatement("DELETE from dogs WHERE name = ?;")
                     .withArguments("Cocoa")
                     .executeUpdate()

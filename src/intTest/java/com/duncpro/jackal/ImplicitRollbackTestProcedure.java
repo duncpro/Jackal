@@ -2,7 +2,6 @@ package com.duncpro.jackal;
 
 import org.junit.Assert;
 
-import javax.annotation.processing.Completion;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 
@@ -17,7 +16,7 @@ public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
                 .executeUpdate()
                 .join();
 
-        final var transactionResult = db.commitTransactionAsync(t -> {
+        final var transactionResult = db.commitTransaction(t -> {
             t.prepareStatement("INSERT INTO colors VALUES (?)")
                     .withArguments("red")
                     .executeUpdate()

@@ -53,7 +53,7 @@ public class DataSourceAsyncWrapper implements AsyncDatabase {
         }
     }
 
-    public <T> CompletableFuture<T> runTransactionAsync(Function<AsyncDatabaseTransaction, T> procedure) {
+    public <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
         return getConnection()
                 .thenCompose(connection ->
                         runAsync(() -> setAutoCommit(connection, false), sqlExecutor)
