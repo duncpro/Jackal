@@ -7,9 +7,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class CommitTransactionAsyncTestProcedure implements Consumer<AsyncDatabase> {
+public class CommitTransactionAsyncTestProcedure implements Consumer<RelationalDatabase> {
     @Override
-    public void accept(AsyncDatabase db) {
+    public void accept(RelationalDatabase db) {
         final var expected = Set.of("Will", "Allison", "Madison");
 
         db.commitTransaction(new CreatePeopleTransaction(expected)).join();

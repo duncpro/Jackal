@@ -2,16 +2,11 @@ package com.duncpro.jackal.jdbc;
 
 import com.duncpro.jackal.*;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.intellij.lang.annotations.Language;
 import org.junit.*;
 
 import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class DataSourceAsyncWrapperTest {
     private final BasicDataSource dataSource = new BasicDataSource();
@@ -37,7 +32,7 @@ public class DataSourceAsyncWrapperTest {
         sqlExecutor.shutdown();
     }
 
-    final DataSourceAsyncWrapper db = new DataSourceAsyncWrapper(dataSource, transactionExecutor, sqlExecutor);
+    final DataSourceWrapper db = new DataSourceWrapper(dataSource, transactionExecutor, sqlExecutor);
 
     @Test
     public void testCommitTransactionAsync() {

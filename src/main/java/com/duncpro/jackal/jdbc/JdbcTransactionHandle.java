@@ -1,7 +1,7 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.StatementBuilder;
-import com.duncpro.jackal.AsyncDatabaseTransaction;
+import com.duncpro.jackal.SQLStatementBuilder;
+import com.duncpro.jackal.TransactionHandle;
 import lombok.RequiredArgsConstructor;
 
 import java.sql.Connection;
@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.CompletableFuture.runAsync;
 
 @RequiredArgsConstructor
-class JdbcTransaction implements AsyncDatabaseTransaction {
+class JdbcTransactionHandle implements TransactionHandle {
     private final Connection connection;
     private final ExecutorService executor;
 
@@ -39,7 +39,7 @@ class JdbcTransaction implements AsyncDatabaseTransaction {
     }
 
     @Override
-    public StatementBuilder prepareStatement(String parameterizedSQL) {
+    public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
         return new JdbcStatementBuilder(parameterizedSQL, CompletableFuture.completedFuture(connection),
                 false, executor);
     }

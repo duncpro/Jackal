@@ -1,7 +1,7 @@
 package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.QueryResultRow;
-import com.duncpro.jackal.StatementBuilderBase;
+import com.duncpro.jackal.SQLStatementBuilderBase;
 import com.duncpro.jackal.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,11 +17,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-class AmazonDataAPIStatementBuilder extends StatementBuilderBase {
+class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
     private final AmazonDataAPIDatabase db;
-    private final AmazonDataAPITransaction transaction;
+    private final AmazonDataAPITransactionHandle transaction;
 
-    AmazonDataAPIStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable AmazonDataAPITransaction transaction) {
+    AmazonDataAPIStatementBuilder(AmazonDataAPIDatabase db, String sql, @Nullable AmazonDataAPITransactionHandle transaction) {
         super(sql);
         this.db = db;
         this.transaction = transaction;

@@ -5,9 +5,9 @@ import org.junit.Assert;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class RollbackTestProcedure implements Consumer<AsyncDatabase>  {
+public class RollbackTestProcedure implements Consumer<RelationalDatabase>  {
     @Override
-    public void accept(AsyncDatabase db) {
+    public void accept(RelationalDatabase db) {
         db.prepareStatement("DROP TABLE IF EXISTS dogs;")
                 .executeUpdate()
                 .join();

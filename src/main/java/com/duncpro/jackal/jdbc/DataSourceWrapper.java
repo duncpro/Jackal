@@ -1,8 +1,8 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.StatementBuilder;
-import com.duncpro.jackal.AsyncDatabase;
-import com.duncpro.jackal.AsyncDatabaseTransaction;
+import com.duncpro.jackal.SQLStatementBuilder;
+import com.duncpro.jackal.RelationalDatabase;
+import com.duncpro.jackal.TransactionHandle;
 import lombok.RequiredArgsConstructor;
 
 import javax.sql.DataSource;
@@ -16,13 +16,13 @@ import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
- * Implementation of {@link AsyncDatabase} which wraps {@link DataSource}.
+ * Implementation of {@link RelationalDatabase} which wraps {@link DataSource}.
  *
  * Warning: Do not use the same {@link ExecutorService} for both {@code transactionExecutor}
  * and {@code sqlExecutor}. By doing so you risk deadlock when using fixed-size thread pools.
  */
 @RequiredArgsConstructor
-public class DataSourceAsyncWrapper implements AsyncDatabase {
+public class DataSourceWrapper implements RelationalDatabase {
     private final DataSource dataSource;
     private final ExecutorService transactionExecutor;
     private final ExecutorService sqlExecutor;
@@ -53,11 +53,11 @@ public class DataSourceAsyncWrapper implements AsyncDatabase {
         }
     }
 
-    public <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
+    public <T> CompletableFuture<T> runTransaction(Function<TransactionHandle, T> procedure) {
         return getConnection()
                 .thenCompose(connection ->
                         runAsync(() -> setAutoCommit(connection, false), sqlExecutor)
-                                .thenApply(($) -> new JdbcTransaction(connection, sqlExecutor))
+                                .thenApply(($) -> new JdbcTransactionHandle(connection, sqlExecutor))
                                 .thenApplyAsync(procedure, transactionExecutor)
                                 .whenCompleteAsync(($, $$) -> setAutoCommit(connection, true), sqlExecutor)
                                 .whenCompleteAsync(($, $$) -> close(connection), sqlExecutor)
@@ -65,7 +65,7 @@ public class DataSourceAsyncWrapper implements AsyncDatabase {
     }
 
     @Override
-    public StatementBuilder prepareStatement(String parameterizedSQL) {
+    public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
         return new JdbcStatementBuilder(parameterizedSQL, getConnection(), true, sqlExecutor);
     }
 }

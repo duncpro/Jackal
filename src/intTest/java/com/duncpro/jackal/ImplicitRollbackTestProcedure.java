@@ -5,9 +5,9 @@ import org.junit.Assert;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 
-public class ImplicitRollbackTestProcedure implements Consumer<AsyncDatabase> {
+public class ImplicitRollbackTestProcedure implements Consumer<RelationalDatabase> {
     @Override
-    public void accept(AsyncDatabase db) {
+    public void accept(RelationalDatabase db) {
         db.prepareStatement("DROP TABLE IF EXISTS colors;")
                 .executeUpdate()
                 .join();

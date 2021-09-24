@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public class CreatePeopleTransaction implements Function<AsyncDatabaseTransaction, Void> {
+public class CreatePeopleTransaction implements Function<TransactionHandle, Void> {
     private final Collection<String> firstNames;
 
     public CreatePeopleTransaction(Collection<String> firstNames) {
@@ -12,7 +12,7 @@ public class CreatePeopleTransaction implements Function<AsyncDatabaseTransactio
     }
 
     @Override
-    public Void apply(AsyncDatabaseTransaction db) {
+    public Void apply(TransactionHandle db) {
         db.prepareStatement("DROP TABLE IF EXISTS people;")
                 .executeUpdate()
                 .join();

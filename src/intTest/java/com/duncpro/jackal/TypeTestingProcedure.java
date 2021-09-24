@@ -5,9 +5,9 @@ import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
-public class TypeTestingProcedure implements Function<AsyncDatabase, Void> {
+public class TypeTestingProcedure implements Function<RelationalDatabase, Void> {
     @Override
-    public Void apply(AsyncDatabase db) {
+    public Void apply(RelationalDatabase db) {
         db.prepareStatement("DROP TABLE IF EXISTS typeTestTable;")
                 .executeUpdate()
                 .join();

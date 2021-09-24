@@ -9,10 +9,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -31,7 +29,7 @@ public class AmazonDataAPIDatabaseTest {
         rdsDataClient.close();
     }
 
-    private AsyncDatabase db;
+    private RelationalDatabase db;
 
     @Value
     private static class AWSResources {

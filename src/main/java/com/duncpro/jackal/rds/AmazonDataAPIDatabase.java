@@ -1,8 +1,8 @@
 package com.duncpro.jackal.rds;
 
-import com.duncpro.jackal.StatementBuilder;
-import com.duncpro.jackal.AsyncDatabase;
-import com.duncpro.jackal.AsyncDatabaseTransaction;
+import com.duncpro.jackal.SQLStatementBuilder;
+import com.duncpro.jackal.RelationalDatabase;
+import com.duncpro.jackal.TransactionHandle;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 import software.amazon.awssdk.services.rdsdata.RdsDataClient;
 import software.amazon.awssdk.services.rdsdata.model.BeginTransactionRequest;
@@ -14,10 +14,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
 /**
- * Exposes {@link RdsDataClient} as an {@link AsyncDatabase}.
+ * Exposes {@link RdsDataClient} as an {@link RelationalDatabase}.
  */
 @ThreadSafe
-public class AmazonDataAPIDatabase implements AsyncDatabase {
+public class AmazonDataAPIDatabase implements RelationalDatabase {
     final RdsDataAsyncClient rdsDataClient;
     final String databaseArn;
     final String databaseSecretArn;
@@ -37,7 +37,7 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
         this.transactionExecutor = transactionExecutor;
     }
 
-    private CompletableFuture<AmazonDataAPITransaction> startTransaction() {
+    private CompletableFuture<AmazonDataAPITransactionHandle> startTransaction() {
         final var request = BeginTransactionRequest.builder()
                 .secretArn(databaseSecretArn)
                 .resourceArn(databaseArn)
@@ -45,17 +45,17 @@ public class AmazonDataAPIDatabase implements AsyncDatabase {
 
         return rdsDataClient.beginTransaction(request)
                 .thenApply(BeginTransactionResponse::transactionId)
-                .thenApply(transactionId -> new AmazonDataAPITransaction(this, transactionId));
+                .thenApply(transactionId -> new AmazonDataAPITransactionHandle(this, transactionId));
     }
 
     @Override
-    public <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
+    public <T> CompletableFuture<T> runTransaction(Function<TransactionHandle, T> procedure) {
         return startTransaction()
                 .thenApplyAsync(procedure, transactionExecutor);
     }
 
     @Override
-    public StatementBuilder prepareStatement(String parameterizedSQL) {
+    public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
         return new AmazonDataAPIStatementBuilder(this, parameterizedSQL, null);
     }
 }

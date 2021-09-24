@@ -1,9 +1,8 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.StatementBuilderBase;
+import com.duncpro.jackal.SQLStatementBuilderBase;
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.StreamUtil;
-import lombok.Value;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -18,7 +17,7 @@ import java.util.stream.StreamSupport;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-class JdbcStatementBuilder extends StatementBuilderBase {
+class JdbcStatementBuilder extends SQLStatementBuilderBase {
     private final CompletableFuture<Connection> connectionFuture;
     private final boolean ownsConnection;
     private final Executor executor;

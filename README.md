@@ -3,93 +3,110 @@
 [![codecov](https://codecov.io/gh/duncpro/jackal/branch/master/graph/badge.svg?token=B5MZD14GUT)](https://codecov.io/gh/duncpro/jackal)
 [![](https://jitpack.io/v/com.duncpro/jackal.svg)](https://jitpack.io/#com.duncpro/jackal)
 
-Wrapper around RDS Data API (AWS SDK v2).
+Wrapper around RDS Data API (AWS SDK v2) with support for local testing.
+Jackal makes it possible to build applications that take advantage of the scalability provided by the Aurora Data API,
+but can also be run locally during development and testing.
 
-## Getting Started
+## Overview
+### Using Jackal with the Aurora Data API
+In production and staging environments your application will be using
+a real Aurora database. `AmazonDataAPIDatabase` is an implementation of `RelationalDatabase` which wraps
+the Aurora Data API Client included in AWS SDK v2.
 ```java
-final AsyncDatabase db = new AmazonDataAPIDatabase(/* */);
+final RelationalDatabase db = new AmazonDataAPIDatabase(/* */);
 ```
+### Using Jackal with JDBC
+In development/testing scenarios it's advantageous to use a locally hosted or in-memory database instead
+of an actual Aurora database. Among other reasons, using a JDBC database enables you to potentially work offline,
+save on AWS costs, and develop in a more transparent environment.
 
-## Features
-### Fully embraces Java 8's CompletableFuture
-All updates return `CompletableFuture` and all queries return `Stream`.
+Jackal provides a second implementation of `RelationalDatabase`
+which wraps a standard JDBC `DataSource`. 
 ```java
-final Set<String> firstNames;
+final RelationalDatabase db = new DataSourceWrapper(/* */);
+```
+### Parallel Updates using CompletableFuture
+Since the Aurora Data API is built on top of AWS SDK v2 and therefore HTTP, performance can be improved by running updates in parallel. 
+`SQLStatementBuilder#executeUpdate` returns a `CompletableFuture` making it easy to perform multiple updates
+simultaneously.
+```java
+final CompletableFuture<Void> u1 = db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
+        .withArguments("Duncan Proctor", 23, true)
+        .executeUpdate();
+
+final CompletableFuture<Void> u2 = /* .. */
+        
+CompletableFuture.allOf(u1, u2);
+```
+### Process Queries Using Java 8's Stream
+`SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
+traditional JDBC.
+```java
+final Set<String> firstNames = new HashSet<String>;
 try (final var results = db.prepareStatement("SELECT first_name FROM person")
         .executeQuery()) {
-    
-        firstNames = results.map(row -> row.get("first_name", String.class))
+        results
+            .map(row -> row.get("first_name", String.class))
             .map(Optional::orElseThrow) // first_name is a NOT NULL column
-            .collect(Collectors.toSet());
+            .forEach(firstNames::add);
 }
-
 ```
+It's worth noting that example above is blocking code. Parallelizing queries can also improve application performance, so consider wrapping this in a 
+`CompletableFuture.supplyAsync` if you wish to run multiple queries simultaniously.
+
 ### JDBC-like Parameterization
+Jackal supports statement parameterization using JDBC-like syntax.
+
 ```java
 db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
         .withArguments("Duncan Proctor", 23, true)
         .executeUpdate()
-        .join();
-```
-### JDBC DataSource Implementation
-In addition to `AmazonDataAPIDatabase`, this library includes a second implementation of `AsyncDatabase`, 
-called `DataSourceAsyncWrapper`. This class wraps a standard JDBC `DataSource` with `AsyncDatabase`
-making it easy to test database-related code locally.
-```java
-final AsyncDatabase db = new DataSourceAsyncWrapper(/* */);
 ```
 ### Transactions
+Jackal exposes Aurora Data API's transaction support using a callback-style interface inspired by the
+JavaScript Firebase Admin API.
+
+First create a class to represent your transaction.
 ```java
-db.commitTransactionAsync(transaction -> {
-        transaction.prepareStatement("CREATE TABLE TABLE_A (COLUMN_A varchar);")
-            .executeUpdate()
-            .join();
+class InsertAndGetYoungestTransaction implements Function<TransactionHandle, Person> {
+    private final int age;
+    InsertAndGetYoungestTransaction(int age) {
+        this.age = age;
+    }
+    
+    @Override
+    public Person apply(TransactionHandle th) {
+        th.prepareStatement("INSERT INTO Person (age INT);")
+                .withArgument(age)
+                .executeUpdate()
+                .join();
 
-        transaction.prepareStatement("INSERT INTO TABLE_A VALUES (?);")
-            .withArguments("hello")
-            .executeUpdate()
-            .join();
-});
+        try (final var result = th.prepareStatement("SELECT * FROM PERSON SORT BY age ASC;")
+                .executeQuery()) {
+            
+            return result.map(Person::fromRow).findFirst()
+                    .orElseThrow(AssertionError::new);
+        }
+    }
+}
 ```
-- Use `runTransactionAsync(Callback)` if you would like to explicitly commit the transaction from within the callback.
-  (via `transaction.commit().join()`)
-- Both `commitTransactionAsync` and `runTransactionAsync` return a `CompletableFuture`
-which encapsulates the return value of the callback function.
+Now instantiate your transaction and commit it to the database.
+```java
+final CompletableFuture<Person> youngest = 
+        db.commitTransaction(new InsertAndGetYoungestTransaction(26));
+```
+If your transaction's `apply` function throws an exception, the database transaction will
+be rolled back, and the exception propagated into the returned CompletableFuture.
 
-## Gotchas
-- This library has a transitive dependency on the AWS Java SDK v2.
+Alternatively use `runTransactionAsync(Function<TransactionHandle, T>)` if you would like to explicitly finalize the
+transaction from within the callback via `TransactionHandle#commit()` and `TransactionHandle#rollback()`.
 
-## Motivations
+
+## Motivation
 The [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
   lacking in a few key categories.
   - It has a dependency on AWS SDK v1 and can not support
     CompletableFuture. 
   - The parameterization syntax is too verbose, whereas the original JDBC
     syntax is much more concise.
-      - Official AWS Client Library Param Syntax: `SELECT * FROM table_a WHERE column_a = :column_a;`
-      - JDBC-like Parameterization: `SELECT * FROM table_a WHERE column_a = ?;`
-  - It only exposes concrete types so there is no easy way to Mock
-    the API.
-    
-
-## DTO
-Recommended approach for mapping rows to objects.
-```java
-Dog convertRowToObj(QueryResultRow row) {
-    final var dog = new Dog();
-    dog.name = row.get("name", String.class);
-    dog.breed = row.get("breed", String.class);
-    return dog;
-}
-
-CompletableFuture<List<Dog>> getDogs() {
-        try (final var results = db.prepareStatement("SELECT name, breed FROM dogs;")
-            .executeQuery()) {
-            
-            return results.map(this::convertRowToObj)
-                .collect(Collectors.toList());
-        }
-}
-
-```
-
+  - It provides no facilities for local testing/development.

@@ -9,17 +9,17 @@ import java.util.stream.Stream;
  * A minimalistic asynchronous SQL API inspired by JDBC.
  */
 @ThreadSafe
-public interface AsyncDatabase extends SQLStatementExecutor {
+public interface RelationalDatabase extends SQLStatementBuilderFactory {
     /**
      * Creates a new transaction and runs the provided transaction procedure asynchronously.
      *
      * All resources allocated as a result of the transaction are freed after the transaction procedure returns.
      *
-     * {@link AsyncDatabaseTransaction#commit()} must be explicitly called. A variant of this function
+     * {@link TransactionHandle#commit()} must be explicitly called. A variant of this function
      * {@link #commitTransaction} can be used for implicit committal scenarios.
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    <T> CompletableFuture<T> runTransaction(Function<AsyncDatabaseTransaction, T> procedure);
+    <T> CompletableFuture<T> runTransaction(Function<TransactionHandle, T> procedure);
 
     /**
      * Creates a new transaction and executes the provided transaction procedure asynchronously. If an exception is
@@ -32,7 +32,7 @@ public interface AsyncDatabase extends SQLStatementExecutor {
      *
      * @return a {@link CompletableFuture<T>} encapsulating the value returned by {@code procedure}.
      */
-    default <T> CompletableFuture<T> commitTransaction(Function<AsyncDatabaseTransaction, T> procedure) {
+    default <T> CompletableFuture<T> commitTransaction(Function<TransactionHandle, T> procedure) {
         return runTransaction(transaction -> {
             final T returnValue;
             try {

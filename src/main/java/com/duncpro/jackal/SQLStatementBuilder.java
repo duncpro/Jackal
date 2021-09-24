@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 @NotThreadSafe
-public interface StatementBuilder {
+public interface SQLStatementBuilder {
     /**
      * Effectively interpolates the given arguments into the SQL statement. The first argument in the list
      * is interpolated into the first parameter and so on. The following argument types are supported {@link String},
@@ -15,14 +15,14 @@ public interface StatementBuilder {
      * within the SQL statement.
      * @throws IllegalArgumentException if an unsupported type is passed as an argument.
      */
-    StatementBuilder withArguments(Object... args);
+    SQLStatementBuilder withArguments(Object... args);
 
     /**
      * Appends the given argument to the end of the argument list.
      * This is an alias for {@link #withArguments}. See the aforementioned function's declaration
      * for complete documentation.
      */
-    default StatementBuilder withArgument(Object arg) {
+    default SQLStatementBuilder withArgument(Object arg) {
         return withArguments(arg);
     }
 

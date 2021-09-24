@@ -1,7 +1,7 @@
 package com.duncpro.jackal.rds;
 
-import com.duncpro.jackal.AsyncDatabaseTransaction;
-import com.duncpro.jackal.StatementBuilder;
+import com.duncpro.jackal.TransactionHandle;
+import com.duncpro.jackal.SQLStatementBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,10 +9,9 @@ import software.amazon.awssdk.services.rdsdata.model.CommitTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @RequiredArgsConstructor
-class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
+class AmazonDataAPITransactionHandle implements TransactionHandle {
     private final AmazonDataAPIDatabase db;
     final String id;
 
@@ -57,9 +56,9 @@ class AmazonDataAPITransaction implements AsyncDatabaseTransaction {
     }
 
     @Override
-    public StatementBuilder prepareStatement(String parameterizedSQL) {
+    public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
         return new AmazonDataAPIStatementBuilder(db, parameterizedSQL, this);
     }
 
-    private final static Logger logger = LoggerFactory.getLogger(AmazonDataAPITransaction.class);
+    private final static Logger logger = LoggerFactory.getLogger(AmazonDataAPITransactionHandle.class);
 }

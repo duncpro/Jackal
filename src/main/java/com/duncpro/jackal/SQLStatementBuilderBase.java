@@ -9,12 +9,12 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 
-public abstract class StatementBuilderBase implements StatementBuilder {
+public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
     protected final String parameterizedSQL;
     protected final int paramCount;
     protected final List<Object> args;
 
-    public StatementBuilderBase(String parameterizedSQL) {
+    public SQLStatementBuilderBase(String parameterizedSQL) {
         this.parameterizedSQL = parameterizedSQL;
         paramCount = parameterizedSQL.length() - (parameterizedSQL
                 .replaceAll(Pattern.quote("?"), "").length());
@@ -22,7 +22,7 @@ public abstract class StatementBuilderBase implements StatementBuilder {
     }
 
     @Override
-    public StatementBuilder withArguments(Object... args) {
+    public SQLStatementBuilder withArguments(Object... args) {
         if (args.length + this.args.size() > paramCount) {
             throw new IndexOutOfBoundsException("There are " + paramCount + " parameters in the statement" +
                     " but " + (args.length + this.args.size()) + " arguments have been given. (Did you forget to " +
