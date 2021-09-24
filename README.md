@@ -17,7 +17,7 @@ final RelationalDatabase db = new AmazonDataAPIDatabase(/* */);
 ```
 ### Using Jackal with JDBC
 In development/testing scenarios it's advantageous to use a locally hosted or in-memory database instead
-of an actual Aurora database. Among other reasons, using a JDBC database enables you to potentially work offline,
+of an actual Aurora database. Among other advantages, using a JDBC database enables you to potentially work offline,
 save on AWS costs, and develop in a more transparent environment.
 
 Jackal provides a second implementation of `RelationalDatabase`
