@@ -52,7 +52,7 @@ try (final var results = db.prepareStatement("SELECT first_name FROM person")
 }
 ```
 It's worth noting that example above is blocking code. Parallelizing queries can also improve application performance, so consider wrapping this in a 
-`CompletableFuture.supplyAsync` if you wish to run multiple queries simultaniously.
+`CompletableFuture.supplyAsync` if you wish to run multiple queries simultaneously.
 
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
@@ -98,7 +98,7 @@ final CompletableFuture<Person> youngest =
 If your transaction's `apply` function throws an exception, the database transaction will
 be rolled back, and the exception propagated into the returned CompletableFuture.
 
-Alternatively use `runTransactionAsync(Function<TransactionHandle, T>)` if you would like to explicitly finalize the
+Alternatively use `runTransaction(Function<TransactionHandle, T>)` if you would like to explicitly finalize the
 transaction from within the callback via `TransactionHandle#commit()` and `TransactionHandle#rollback()`.
 
 
