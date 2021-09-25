@@ -7,7 +7,7 @@ plugins {
 val lombokVersion by extra { "1.18.20" }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-2"
+version = "1.0-SNAPSHOT-3"
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
@@ -103,5 +103,8 @@ publishing {
     }
 }
 
-java.sourceCompatibility = JavaVersion.VERSION_11
-java.targetCompatibility = JavaVersion.VERSION_11
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
