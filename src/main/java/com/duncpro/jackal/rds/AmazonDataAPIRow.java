@@ -8,6 +8,7 @@ import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 public class AmazonDataAPIRow implements QueryResultRow {
@@ -38,6 +39,8 @@ public class AmazonDataAPIRow implements QueryResultRow {
             unwrappedValue = (T) valueWrapper.doubleValue();
         } else if (javaType == BigDecimal.class) {
             unwrappedValue = (T) new BigDecimal(valueWrapper.stringValue());
+        } else if (javaType == UUID.class) {
+            unwrappedValue = (T) UUID.fromString(valueWrapper.stringValue());
         }
         else {
             throw new IllegalArgumentException("Deserializing " + javaType.getName() + " is unsupported.");

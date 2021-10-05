@@ -93,7 +93,9 @@ class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
                 fieldBuilder.doubleValue((Double) arg);
             } else if (arg instanceof byte[]) {
                 fieldBuilder.blobValue(SdkBytes.fromByteArray((byte[]) arg));
-            } else {
+            } if (arg instanceof UUID) {
+                fieldBuilder.stringValue(arg.toString());
+            }  else {
                 throw new AssertionError("Unexpected type: " + arg.getClass().getName());
             }
 
