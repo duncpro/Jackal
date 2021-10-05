@@ -7,7 +7,7 @@ plugins {
 val lombokVersion by extra { "1.18.20" }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-3"
+version = "1.0-SNAPSHOT-4"
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
