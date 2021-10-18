@@ -8,7 +8,7 @@ Run your RDS Aurora Data API dependent applications locally using JDBC.
 
 ## Overview
 ### Using Jackal with the Aurora Data API
-In production and staging environments your application will be using
+In production and staging environments your application will likely be using
 a real Aurora database. `AmazonDataAPIDatabase` is an implementation of `RelationalDatabase` which wraps
 the Aurora Data API Client included in AWS SDK v2.
 ```java
@@ -71,7 +71,7 @@ try (final var results = db.prepareStatement("SELECT first_name FROM person ORDE
 }
 ```
 Currently, only `DataSourceWrapper` supports incremental fetching. All `AmazonDataAPIDatabase` queries
-are prefetched regardless of which query function is used.
+are prefetched regardless of which query function is used. 
 
 If a database error occurs while fetching a row, then `UncheckedRelationalDatabaseException`
 is thrown by the terminal operator function, for example: `collect`.
