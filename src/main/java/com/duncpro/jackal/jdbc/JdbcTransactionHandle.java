@@ -1,46 +1,64 @@
 package com.duncpro.jackal.jdbc;
 
+import com.duncpro.jackal.RelationalDatabaseException;
 import com.duncpro.jackal.SQLStatementBuilder;
 import com.duncpro.jackal.TransactionHandle;
-import lombok.RequiredArgsConstructor;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
-import static java.util.concurrent.CompletableFuture.runAsync;
+import static java.util.concurrent.CompletableFuture.completedFuture;
 
-@RequiredArgsConstructor
-class JdbcTransactionHandle implements TransactionHandle {
-    private final Connection connection;
-    private final ExecutorService executor;
+public class JdbcTransactionHandle implements TransactionHandle {
+    private final Connection underlyingJdbcConnection;
+    private final ExecutorService sqlExecutor;
+    boolean isCommitted = false;
+    boolean originalAutoCommitStatus;
 
-    @Override
-    public CompletableFuture<Void> rollback() {
-        return runAsync(() -> {
+    public JdbcTransactionHandle(Connection underlyingJdbcConnection, ExecutorService sqlExecutor)
+            throws RelationalDatabaseException {
+        this.underlyingJdbcConnection = underlyingJdbcConnection;
+        this.sqlExecutor = sqlExecutor;
+
+        try {
+            this.originalAutoCommitStatus = this.underlyingJdbcConnection.getAutoCommit();
+            this.underlyingJdbcConnection.setAutoCommit(false);
+        } catch (SQLException e) {
             try {
-                connection.rollback();
-            } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                this.underlyingJdbcConnection.close();
+            } catch (SQLException e2) {
+                e.addSuppressed(e2);
             }
-        }, executor);
-    }
-
-    @Override
-    public CompletableFuture<Void> commit() {
-        return runAsync(() -> {
-            try {
-                connection.commit();
-            } catch (SQLException e) {
-                throw new AsyncSQLException(e);
-            }
-        }, executor);
+            throw new RelationalDatabaseException(e);
+        }
     }
 
     @Override
     public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
-        return new JdbcStatementBuilder(parameterizedSQL, CompletableFuture.completedFuture(connection),
-                false, executor);
+        return new JdbcStatementBuilder(parameterizedSQL, completedFuture(this.underlyingJdbcConnection), false,
+                sqlExecutor);
+    }
+
+    @Override
+    public void commit() throws RelationalDatabaseException {
+        try {
+            underlyingJdbcConnection.commit();
+            isCommitted = true;
+        } catch (SQLException e) {
+            throw new RelationalDatabaseException(e);
+        }
+    }
+
+    @Override
+    public void close() throws RelationalDatabaseException {
+        try (underlyingJdbcConnection) {
+            if (!isCommitted) {
+                underlyingJdbcConnection.rollback();
+            }
+            underlyingJdbcConnection.setAutoCommit(originalAutoCommitStatus);
+        } catch (SQLException e) {
+            throw new RelationalDatabaseException(e);
+        }
     }
 }

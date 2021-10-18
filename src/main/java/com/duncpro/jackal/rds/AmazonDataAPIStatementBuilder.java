@@ -1,19 +1,19 @@
 package com.duncpro.jackal.rds;
 
 import com.duncpro.jackal.QueryResultRow;
+import com.duncpro.jackal.RelationalDatabaseException;
 import com.duncpro.jackal.SQLStatementBuilderBase;
 import com.duncpro.jackal.StreamUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
-import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;
-import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementResponse;
-import software.amazon.awssdk.services.rdsdata.model.Field;
-import software.amazon.awssdk.services.rdsdata.model.SqlParameter;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.rdsdata.model.*;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -56,6 +56,12 @@ class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
     @Override
     protected Stream<QueryResultRow> executeQueryImpl() {
         final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
+                .exceptionally((e) -> {
+                    if (e instanceof SdkException) {
+                        throw new CompletionException(new RelationalDatabaseException(e));
+                    }
+                    throw new CompletionException(e);
+                })
                 .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
@@ -67,6 +73,12 @@ class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
     protected CompletableFuture<Void> executeUpdateImpl() {
         return db.rdsDataClient
                 .executeStatement(compileAWSRequest())
+                .exceptionally((e) -> {
+                    if (e instanceof SdkException) {
+                        throw new CompletionException(new RelationalDatabaseException(e));
+                    }
+                    throw new CompletionException(e);
+                })
                 .thenApply(($) -> null);
     }
 

@@ -18,7 +18,8 @@ final RelationalDatabase db = new AmazonDataAPIDatabase(/* */);
 ### Using Jackal with JDBC
 In development/testing scenarios it's advantageous to use a locally hosted or in-memory database instead
 of an actual Aurora database. Among other advantages, using a JDBC database enables you to potentially work offline,
-save on AWS costs, and develop in a more transparent environment.
+save on AWS costs, and develop in a more transparent environment. Additionally, the included JDBC support
+provides an escape-hatch if you ever choose to move away from AWS/RDS.
 
 Jackal provides a second implementation of `RelationalDatabase`
 which wraps a standard JDBC `DataSource`. 
@@ -27,18 +28,24 @@ final RelationalDatabase db = new DataSourceWrapper(/* */);
 ```
 ### Parallel Updates using CompletableFuture
 Since the Aurora Data API is built on top of AWS SDK v2 and therefore HTTP, performance can be improved by running updates in parallel. 
-`SQLStatementBuilder#executeUpdate` returns a `CompletableFuture` making it easy to perform multiple updates
+`SQLStatementBuilder#startUpdate` returns a `CompletableFuture` making it easy to perform multiple updates
 simultaneously.
 ```java
 final CompletableFuture<Void> u1 = db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
         .withArguments("Duncan Proctor", 23, true)
-        .executeUpdate();
+        .startUpdate();
 
 final CompletableFuture<Void> u2 = /* .. */
         
 CompletableFuture.allOf(u1, u2);
 ```
-### Process Queries Using Java 8's Stream
+### Sequential Updates
+In some cases, parallelization of updates introduces complexity without adding much of 
+a performance benefit, like in a short-lived AWS Lambda function. For these instances, consider using
+the `SQLStatementBuilder#executeUpdate` convenience method. This will block the current thread until
+the update is complete.
+
+### Queries Using Java 8's Stream
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
 traditional JDBC.
 ```java
@@ -51,9 +58,6 @@ try (final var results = db.prepareStatement("SELECT first_name FROM person")
             .forEach(firstNames::add);
 }
 ```
-It's worth noting that example above is blocking code. Parallelizing queries can also improve application performance, so consider wrapping this in a 
-`CompletableFuture.supplyAsync` if you wish to run multiple queries simultaneously.
-
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
 
@@ -62,45 +66,24 @@ db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
         .withArguments("Duncan Proctor", 23, true)
         .executeUpdate()
 ```
-### Transactions
-Jackal exposes Aurora Data API's transaction support using a callback-style interface inspired by the
-JavaScript Firebase Admin API.
 
-First create a class to represent your transaction.
+### Transaction API
 ```java
-class InsertAndGetYoungestTransaction implements Function<TransactionHandle, Person> {
-    private final int age;
-    InsertAndGetYoungestTransaction(int age) {
-        this.age = age;
-    }
-    
-    @Override
-    public Person apply(TransactionHandle th) {
-        th.prepareStatement("INSERT INTO Person (age INT);")
-                .withArgument(age)
-                .executeUpdate()
-                .join();
-
-        try (final var result = th.prepareStatement("SELECT * FROM PERSON SORT BY age ASC;")
-                .executeQuery()) {
-            
-            return result.map(Person::fromRow).findFirst()
-                    .orElseThrow(AssertionError::new);
-        }
-    }
+try (final UnscopedTransactionHandle transaction = db.startTransaction()) {
+    transaction.prepareStatement("ALTER TABLE Person ADD last_name VARCHAR;")
+        .executeUpdate();
+    transaction.commit();
+} catch (RelationalDatabaseException e) {
+    e.printStackTrace();
 }
 ```
-Now instantiate your transaction and commit it to the database.
-```java
-final CompletableFuture<Person> youngest = 
-        db.commitTransaction(new InsertAndGetYoungestTransaction(26));
-```
-If your transaction's `apply` function throws an exception, the database transaction will
-be rolled back, and the exception propagated into the returned CompletableFuture.
+If `transaction.commit()` never executes successfully, then the transaction will automatically
+be rolled back via the try-with-resources block.
 
-Alternatively use `runTransaction(Function<TransactionHandle, T>)` if you would like to explicitly finalize the
-transaction from within the callback via `TransactionHandle#commit()` and `TransactionHandle#rollback()`.
-
+### Exceptions
+`RelationalDatabaseException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
+All Jackal functions throw `RelationalDatabaseException` but the underlying platform-specific exception
+can still be accessed via `Exception#getCause` if necessary.
 
 ## Motivation
 The [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is

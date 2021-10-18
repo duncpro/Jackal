@@ -5,28 +5,30 @@ import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 
-public class TypeTestingProcedure implements Function<RelationalDatabase, Void> {
+public class TypeTestingProcedure implements CommonTestingProcedure {
     @Override
-    public Void apply(RelationalDatabase db) {
+    public void setup(RelationalDatabase db) {
         db.prepareStatement("DROP TABLE IF EXISTS typeTestTable;")
-                .executeUpdate()
+                .startUpdate()
                 .join();
 
         db.prepareStatement("CREATE TABLE typeTestTable (string VARCHAR, int INTEGER, conditional BOOLEAN," +
                 " dec DECIMAL);")
-                .executeUpdate()
+                .startUpdate()
                 .join();
+    }
 
+    @Override
+    public void test(RelationalDatabase db) {
         db.prepareStatement("INSERT INTO typeTestTable VALUES (?, ?, ?, ?);")
                 .withArguments("hello", 1, true, 23.2)
-                .executeUpdate()
+                .startUpdate()
                 .join();
 
         final var result = db.prepareStatement("SELECT * FROM typeTestTable;")
                 .executeQuery()
                 .findFirst()
                 .orElseThrow();
-
 
         assertEquals("hello", result.get("string", String.class)
                 .orElseThrow());
@@ -37,6 +39,5 @@ public class TypeTestingProcedure implements Function<RelationalDatabase, Void> 
         assertEquals(BigDecimal.valueOf(23.2), result.get("dec", BigDecimal.class)
                 .orElseThrow());
 
-        return null;
     }
 }

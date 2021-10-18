@@ -67,31 +67,22 @@ public class AmazonDataAPIDatabaseTest {
         final var awsResources = loadAWSResourcesFromFileSystem()
                 .orElseGet(this::loadAWSResourcesFromEnvironment);
 
-        db = new AmazonDataAPIDatabase(rdsDataClient, awsResources.dbArn, awsResources.secretArn,
-                transactionExecutor);
+        db = new AmazonDataAPIDatabase(rdsDataClient, awsResources.dbArn, awsResources.secretArn);
     }
 
     @Test
-    public void testCommitTransactionAsync() {
-        new CommitTransactionAsyncTestProcedure().accept(db);
+    public void testTypeConversions() {
+        new TypeTestingProcedure().apply(db);
     }
-
-    @Test
-    public void testRollback() {
-        new RollbackTestProcedure().accept(db);
-    }
-
-    @Test
-    public void testImplicitRollback() {
-        new ImplicitRollbackTestProcedure().accept(db);
-    }
-
-    @Test
-    public void testTypeConversions() { new TypeTestingProcedure().apply(db); }
 
     @Test
     @Ignore
     public void parallelizationBenchmark() {
-        new ParallelizationBenchmark().accept(db);
+        new ParallelizationBenchmark().apply(db);
+    }
+
+    @Test
+    public void testImplicitRollback() {
+        new ImplicitRollbackTestingProcedure().apply(db);
     }
 }

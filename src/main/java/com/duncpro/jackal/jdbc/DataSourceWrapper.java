@@ -1,16 +1,14 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.SQLStatementBuilder;
-import com.duncpro.jackal.RelationalDatabase;
-import com.duncpro.jackal.TransactionHandle;
+import com.duncpro.jackal.*;
 import lombok.RequiredArgsConstructor;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -24,7 +22,6 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 @RequiredArgsConstructor
 public class DataSourceWrapper implements RelationalDatabase {
     private final DataSource dataSource;
-    private final ExecutorService transactionExecutor;
     private final ExecutorService sqlExecutor;
 
     private CompletableFuture<Connection> getConnection() {
@@ -32,7 +29,7 @@ public class DataSourceWrapper implements RelationalDatabase {
             try {
                 return dataSource.getConnection();
             } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                throw new CompletionException(new RelationalDatabaseException(e));
             }
         }, sqlExecutor);
     }
@@ -41,7 +38,7 @@ public class DataSourceWrapper implements RelationalDatabase {
         try {
             connection.setAutoCommit(autoCommit);
         } catch (SQLException e) {
-            throw new AsyncSQLException(e);
+            throw new CompletionException(new RelationalDatabaseException(e));
         }
     }
 
@@ -49,19 +46,20 @@ public class DataSourceWrapper implements RelationalDatabase {
         try {
             connection.close();
         } catch (SQLException e) {
-            throw new AsyncSQLException(e);
+            throw new CompletionException(new RelationalDatabaseException(e));
         }
     }
 
-    public <T> CompletableFuture<T> runTransaction(Function<TransactionHandle, T> procedure) {
-        return getConnection()
-                .thenCompose(connection ->
-                        runAsync(() -> setAutoCommit(connection, false), sqlExecutor)
-                                .thenApply(($) -> new JdbcTransactionHandle(connection, sqlExecutor))
-                                .thenApplyAsync(procedure, transactionExecutor)
-                                .whenCompleteAsync(($, $$) -> setAutoCommit(connection, true), sqlExecutor)
-                                .whenCompleteAsync(($, $$) -> close(connection), sqlExecutor)
-                );
+    @Override
+    public TransactionHandle startTransaction() throws RelationalDatabaseException {
+        final Connection connection;
+        try {
+            connection = this.dataSource.getConnection();
+        } catch (SQLException e) {
+            throw new RelationalDatabaseException(e);
+        }
+
+        return new JdbcTransactionHandle(connection, this.sqlExecutor);
     }
 
     @Override

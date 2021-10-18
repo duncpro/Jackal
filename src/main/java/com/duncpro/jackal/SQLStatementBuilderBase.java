@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -42,11 +43,20 @@ public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
     }
 
     @Override
-    public final CompletableFuture<Void> executeUpdate() {
+    public final CompletableFuture<Void> startUpdate() {
         if (args.size() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }
         return executeUpdateImpl();
+    }
+
+    @Override
+    public void executeUpdate() throws RelationalDatabaseException {
+        try {
+            startUpdate().join();
+        } catch (CompletionException e) {
+            throw new RelationalDatabaseException(e.getCause());
+        }
     }
 
     protected abstract Stream<QueryResultRow> executeQueryImpl();

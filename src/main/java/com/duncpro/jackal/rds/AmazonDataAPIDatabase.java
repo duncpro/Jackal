@@ -1,8 +1,7 @@
 package com.duncpro.jackal.rds;
 
-import com.duncpro.jackal.SQLStatementBuilder;
-import com.duncpro.jackal.RelationalDatabase;
-import com.duncpro.jackal.TransactionHandle;
+import com.duncpro.jackal.*;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 import software.amazon.awssdk.services.rdsdata.RdsDataClient;
 import software.amazon.awssdk.services.rdsdata.model.BeginTransactionRequest;
@@ -10,6 +9,7 @@ import software.amazon.awssdk.services.rdsdata.model.BeginTransactionResponse;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
 
@@ -21,37 +21,37 @@ public class AmazonDataAPIDatabase implements RelationalDatabase {
     final RdsDataAsyncClient rdsDataClient;
     final String databaseArn;
     final String databaseSecretArn;
-    final ExecutorService transactionExecutor;
 
     /**
      * @param rdsDataClient the {@link RdsDataAsyncClient} client which will be used to communicate with AWS.
      * @param databaseArn the ARN of the AWS RDS Database Cluster to connect to.
      * @param databaseSecretArn the ARN of the AWS SecretsManager Secret which contains the credentials for this database.
-     * @param transactionExecutor the {@link ExecutorService} which all transaction tasks will be run on.
      */
     public AmazonDataAPIDatabase(RdsDataAsyncClient rdsDataClient, String databaseArn,
-                                 String databaseSecretArn, ExecutorService transactionExecutor) {
+                                 String databaseSecretArn) {
         this.rdsDataClient = rdsDataClient;
         this.databaseArn = databaseArn;
         this.databaseSecretArn = databaseSecretArn;
-        this.transactionExecutor = transactionExecutor;
     }
 
-    private CompletableFuture<AmazonDataAPITransactionHandle> startTransaction() {
+    @Override
+    public TransactionHandle startTransaction() throws RelationalDatabaseException {
         final var request = BeginTransactionRequest.builder()
                 .secretArn(databaseSecretArn)
                 .resourceArn(databaseArn)
                 .build();
 
-        return rdsDataClient.beginTransaction(request)
-                .thenApply(BeginTransactionResponse::transactionId)
-                .thenApply(transactionId -> new AmazonDataAPITransactionHandle(this, transactionId));
-    }
+        final var transactionId = rdsDataClient.beginTransaction(request)
+                .thenApply(BeginTransactionResponse::transactionId);
 
-    @Override
-    public <T> CompletableFuture<T> runTransaction(Function<TransactionHandle, T> procedure) {
-        return startTransaction()
-                .thenApplyAsync(procedure, transactionExecutor);
+        try {
+            return new AmazonDataAPITransactionHandle(transactionId.join(), this);
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof SdkException) {
+                throw new RelationalDatabaseException(e.getCause());
+            }
+            throw e;
+        }
     }
 
     @Override

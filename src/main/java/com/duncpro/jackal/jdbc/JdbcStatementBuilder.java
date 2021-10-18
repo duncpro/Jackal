@@ -1,5 +1,6 @@
 package com.duncpro.jackal.jdbc;
 
+import com.duncpro.jackal.RelationalDatabaseException;
 import com.duncpro.jackal.SQLStatementBuilderBase;
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.StreamUtil;
@@ -9,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
@@ -35,7 +37,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
             try {
                 connection.close();
             } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                throw new CompletionException(new RelationalDatabaseException(e));
             }
         }
     }
@@ -44,7 +46,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
         try {
             statement.close();
         } catch (SQLException e) {
-            throw new AsyncSQLException(e);
+            throw new CompletionException(new RelationalDatabaseException(e));
         }
     }
 
@@ -52,7 +54,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
         try {
             resultSet.close();
         } catch (SQLException e) {
-            throw new AsyncSQLException(e);
+            throw new CompletionException(new RelationalDatabaseException(e));
         }
     }
 
@@ -69,7 +71,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
 
                 return statement;
             } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                throw new CompletionException(new RelationalDatabaseException(e));
             }
         }, executor);
     }
@@ -80,7 +82,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
             try {
                 statement.executeUpdate();
             } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                throw new CompletionException(new RelationalDatabaseException(e));
             }
         }, executor);
     }
@@ -90,7 +92,7 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
             try {
                 return statement.executeQuery();
             } catch (SQLException e) {
-                throw new AsyncSQLException(e);
+                throw new CompletionException(new RelationalDatabaseException(e));
             }
         }, executor);
 
@@ -101,13 +103,13 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
                 resultSet.beforeFirst();
                 return new ResultSetRowIterator.CountedResultSet(resultSet, length);
             } catch (SQLException e) {
-                final var wrappedException = new AsyncSQLException(e);
+                final var wrappedException = new RelationalDatabaseException(e);
                 try {
                     resultSet.close();
                 } catch (SQLException e1) {
                    e.addSuppressed(e1);
                 }
-                throw wrappedException;
+                throw new CompletionException(wrappedException);
             }
         }, executor);
     }

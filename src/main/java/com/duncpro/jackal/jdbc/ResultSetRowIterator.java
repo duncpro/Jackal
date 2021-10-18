@@ -1,6 +1,7 @@
 package com.duncpro.jackal.jdbc;
 
 import com.duncpro.jackal.QueryResultRow;
+import com.duncpro.jackal.RelationalDatabaseException;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
@@ -8,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Spliterator;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 
 public class ResultSetRowIterator implements Spliterator<QueryResultRow> {
@@ -38,7 +40,7 @@ public class ResultSetRowIterator implements Spliterator<QueryResultRow> {
             }
             return isRemaining;
         } catch (SQLException e) {
-            throw new AsyncSQLException(e);
+            throw new CompletionException(new RelationalDatabaseException(e));
         }
     }
 

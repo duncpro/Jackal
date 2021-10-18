@@ -37,5 +37,10 @@ public interface SQLStatementBuilder {
      * Executes an update on the database and returns a {@link CompletableFuture} which completes after the
      * update has finished.
      */
-    CompletableFuture<Void> executeUpdate();
+    CompletableFuture<Void> startUpdate();
+
+    /**
+     * Executes an update on the database and blocks the current thread until the update has completed.s
+     */
+    void executeUpdate() throws RelationalDatabaseException;
 }
