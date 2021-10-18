@@ -85,4 +85,9 @@ public class AmazonDataAPIDatabaseTest {
     public void testImplicitRollback() {
         new ImplicitRollbackTestingProcedure().apply(db);
     }
+
+    @Test
+    public void testCommitTransaction() {
+        new CommitTransactionTestingProcedure().apply(db);
+    }
 }
