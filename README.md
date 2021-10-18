@@ -3,9 +3,8 @@
 [![codecov](https://codecov.io/gh/duncpro/jackal/branch/master/graph/badge.svg?token=B5MZD14GUT)](https://codecov.io/gh/duncpro/jackal)
 [![](https://jitpack.io/v/com.duncpro/jackal.svg)](https://jitpack.io/#com.duncpro/jackal)
 
-Abstraction over the RDS Data API and JDBC.
-Jackal makes it possible to build applications that take advantage of the scalability provided by the Aurora Data API,
-but can also be run locally during development and testing.
+Abstraction over RDS Aurora Data API and JDBC for Java 8.
+Run your RDS Aurora Data API dependent applications locally using JDBC.
 
 ## Overview
 ### Using Jackal with the Aurora Data API
@@ -49,7 +48,7 @@ the update is complete.
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
 traditional JDBC.
 ```java
-final Set<String> firstNames = = db.prepareStatement("SELECT first_name FROM person LIMIT 10;")
+final Set<String> firstNames = db.prepareStatement("SELECT first_name FROM person LIMIT 10;")
         .executeQuery()
         .map(row -> row.get("first_name", String.class))
         .map(Optional::orElseThrow) // first_name is a NOT NULL column
