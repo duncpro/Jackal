@@ -5,3 +5,4 @@ src/intTest/resources/rds-instance.properties
 /build/
 /build/classes/java/intTest/
 /build/classes/java/main/
+/.idea/

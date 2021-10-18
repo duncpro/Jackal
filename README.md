@@ -105,7 +105,7 @@ All Jackal functions throw `RelationalDatabaseException` but the underlying plat
 can still be accessed via `Exception#getCause` if necessary.
 
 ## Motivation
-The [Official Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
+The [Official RDS Data API Client Library](https://github.com/awslabs/rds-data-api-client-library-java) is
   lacking in a few key categories.
   - It has a dependency on AWS SDK v1 and can not support
     CompletableFuture. 
