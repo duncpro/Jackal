@@ -1,7 +1,5 @@
 package com.duncpro.jackal;
 
-import org.junit.Assert;
-
 import static org.junit.Assert.assertTrue;
 
 public class ImplicitRollbackTestingProcedure implements CommonTestingProcedure {
@@ -38,11 +36,16 @@ public class ImplicitRollbackTestingProcedure implements CommonTestingProcedure 
     }
 
     private void assertRowWasNotInserted(RelationalDatabase db) {
-        boolean wasNotCreated = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = ?;")
-                .withArgument("Duncan")
-                .executeQuery()
-                .findAny()
-                .isEmpty();
+        boolean wasNotCreated = false;
+        try {
+            wasNotCreated = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = ? LIMIT 1;")
+                    .withArgument("Duncan")
+                    .executeQuery()
+                    .findFirst()
+                    .isEmpty();
+        } catch (RelationalDatabaseException e) {
+            throw new AssertionError(e);
+        }
 
         assertTrue(wasNotCreated);
     }

@@ -49,15 +49,33 @@ the update is complete.
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
 traditional JDBC.
 ```java
-final Set<String> firstNames = new HashSet<String>;
-try (final var results = db.prepareStatement("SELECT first_name FROM person")
-        .executeQuery()) {
-        results
-            .map(row -> row.get("first_name", String.class))
-            .map(Optional::orElseThrow) // first_name is a NOT NULL column
-            .forEach(firstNames::add);
+final Set<String> firstNames = = db.prepareStatement("SELECT first_name FROM person LIMIT 10;")
+        .executeQuery()
+        .map(row -> row.get("first_name", String.class))
+        .map(Optional::orElseThrow) // first_name is a NOT NULL column
+        .collect(Collectors.toSet())
+```
+### Incrementally Fetching Query Results
+The aforementioned function, `executeQuery`, prefetches all results and closes any resources associated with the query. 
+In some cases prefetching might detriment performance so the function `startQuery` is provided as a companion.
+This function incrementally fetches rows from the database, but only If the implementation of `RelationalDatabase`
+which provided the `SQLStatementBuilder` supports incremental fetching.
+```java
+try (final var results = db.prepareStatement("SELECT first_name FROM person ORDER BY first_name DESC;")
+        .startQuery()) {
+    
+    match = results.map(row -> row.get("first_name", String.class))
+        .map(Optional::orElseThrow)
+        .map(/* kick off some CompletableFutures */)
+        .filter(/* Some expensive filtering function */)
+        .findFirst();
 }
 ```
+Currently, only `DataSourceWrapper` supports incremental fetching. All `AmazonDataAPIDatabase` queries
+are prefetched regardless of which query function is used.
+
+If a database error occurs while fetching a row, then `UncheckedRelationalDatabaseException`
+is thrown by the terminal operator function, for example: `collect`.
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
 
@@ -68,6 +86,10 @@ db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
 ```
 
 ### Transaction API
+Transactions must be explicitly committed using the `commit` method.
+Rollbacks however are implicit. If `TransactionHandle#close` is called before
+`TransactionHandle#commit`, like in the case of a mid-transaction exception, then
+the transaction will be automatically rolled back.
 ```java
 try (final var transaction = db.startTransaction()) {
     transaction.prepareStatement("ALTER TABLE Person ADD last_name VARCHAR;")
@@ -77,9 +99,6 @@ try (final var transaction = db.startTransaction()) {
     e.printStackTrace();
 }
 ```
-If `transaction.commit()` never executes successfully, then the transaction will automatically
-be rolled back via the try-with-resources block.
-
 ### Exceptions
 `RelationalDatabaseException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
 All Jackal functions throw `RelationalDatabaseException` but the underlying platform-specific exception

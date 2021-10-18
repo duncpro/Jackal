@@ -31,12 +31,11 @@ public class ParallelizationBenchmark implements CommonTestingProcedure {
     private void sequential(IntStream sampleData, RelationalDatabase db) {
         final var startTime = System.currentTimeMillis();
 
-        sampleData
-                .forEach(n -> db.prepareStatement("INSERT INTO nums VALUES (?);")
-                        .withArgument(n)
-                        .startUpdate()
-                        .join()
-                );
+        sampleData.forEach(n -> db.prepareStatement("INSERT INTO nums VALUES (?);")
+                .withArgument(n)
+                .startUpdate()
+                .join()
+        );
 
         System.out.println("Sequential: " + (System.currentTimeMillis() - startTime) + "ms");
     }

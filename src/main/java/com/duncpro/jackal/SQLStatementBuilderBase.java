@@ -1,5 +1,6 @@
 package com.duncpro.jackal;
 
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,7 +36,7 @@ public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
         return this;
     }
 
-    public final Stream<QueryResultRow> executeQuery() {
+    public final Stream<QueryResultRow> startQuery() {
         if (args.size() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }
@@ -48,15 +49,6 @@ public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }
         return executeUpdateImpl();
-    }
-
-    @Override
-    public void executeUpdate() throws RelationalDatabaseException {
-        try {
-            startUpdate().join();
-        } catch (CompletionException e) {
-            throw new RelationalDatabaseException(e.getCause());
-        }
     }
 
     protected abstract Stream<QueryResultRow> executeQueryImpl();

@@ -3,7 +3,7 @@ package com.duncpro.jackal.jdbc;
 import com.duncpro.jackal.RelationalDatabaseException;
 import com.duncpro.jackal.SQLStatementBuilderBase;
 import com.duncpro.jackal.QueryResultRow;
-import com.duncpro.jackal.StreamUtil;
+import com.duncpro.jackal.FutureUtils;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -124,16 +124,16 @@ class JdbcStatementBuilder extends SQLStatementBuilderBase {
                         .thenApply(crs -> StreamSupport.stream(new ResultSetRowIterator(crs), false)
                                 .onClose(() -> closeResultSet(crs.getResultSet())));
 
-                return StreamUtil.unwrapStream(rsFuture)
+                return FutureUtils.unwrapFutureStream(rsFuture)
                         .onClose(() -> closeJdbcStatement(statement));
             });
 
             // Connection-aware Stream
-            return StreamUtil.unwrapStream(statementAwareStreamFuture)
+            return FutureUtils.unwrapFutureStream(statementAwareStreamFuture)
                     .onClose(() -> closeJdbcConnection(connection));
         });
 
-        return StreamUtil.unwrapStream(fullyAwareStream);
+        return FutureUtils.unwrapFutureStream(fullyAwareStream);
 
     }
 

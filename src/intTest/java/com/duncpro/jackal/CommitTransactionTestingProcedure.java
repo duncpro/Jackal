@@ -1,7 +1,5 @@
 package com.duncpro.jackal;
 
-import org.junit.Assert;
-
 import static org.junit.Assert.assertTrue;
 
 public class CommitTransactionTestingProcedure implements CommonTestingProcedure {
@@ -30,11 +28,16 @@ public class CommitTransactionTestingProcedure implements CommonTestingProcedure
     }
 
     private void assertTransactionCommitted(RelationalDatabase db) {
-        final var didInsertRow = db.prepareStatement("SELECT FROM Person WHERE first_name = ?;")
-                .withArgument("Duncan")
-                .executeQuery()
-                .findAny()
-                .isPresent();
+        final boolean didInsertRow;
+        try {
+            didInsertRow = db.prepareStatement("SELECT FROM Person WHERE first_name = ? LIMIT 1;")
+                    .withArgument("Duncan")
+                    .executeQuery()
+                    .findAny()
+                    .isPresent();
+        } catch (RelationalDatabaseException e) {
+            throw new AssertionError(e);
+        }
 
         assertTrue(didInsertRow);
     }

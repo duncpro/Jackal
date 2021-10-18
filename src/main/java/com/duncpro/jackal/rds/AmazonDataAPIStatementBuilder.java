@@ -1,9 +1,6 @@
 package com.duncpro.jackal.rds;
 
-import com.duncpro.jackal.QueryResultRow;
-import com.duncpro.jackal.RelationalDatabaseException;
-import com.duncpro.jackal.SQLStatementBuilderBase;
-import com.duncpro.jackal.StreamUtil;
+import com.duncpro.jackal.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.core.SdkBytes;
@@ -58,14 +55,14 @@ class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
         final var resultStreamFuture = db.rdsDataClient.executeStatement(compileAWSRequest())
                 .exceptionally((e) -> {
                     if (e instanceof SdkException) {
-                        throw new CompletionException(new RelationalDatabaseException(e));
+                        throw new UncheckedRelationalDatabaseException(new RelationalDatabaseException(e));
                     }
                     throw new CompletionException(e);
                 })
                 .thenApply(AmazonDataAPIStatementBuilder::extractRowsFromAWSResponse)
                 .thenApply(Collection::stream);
 
-        return StreamUtil.unwrapStream(resultStreamFuture)
+        return FutureUtils.unwrapFutureStream(resultStreamFuture)
                 .map(AmazonDataAPIRow::new);
     }
 
@@ -75,7 +72,7 @@ class AmazonDataAPIStatementBuilder extends SQLStatementBuilderBase {
                 .executeStatement(compileAWSRequest())
                 .exceptionally((e) -> {
                     if (e instanceof SdkException) {
-                        throw new CompletionException(new RelationalDatabaseException(e));
+                        throw new UncheckedRelationalDatabaseException(new RelationalDatabaseException(e));
                     }
                     throw new CompletionException(e);
                 })

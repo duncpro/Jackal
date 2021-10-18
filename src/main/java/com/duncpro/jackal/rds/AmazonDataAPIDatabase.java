@@ -8,10 +8,7 @@ import software.amazon.awssdk.services.rdsdata.model.BeginTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.BeginTransactionResponse;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
 
 /**
  * Exposes {@link RdsDataClient} as an {@link RelationalDatabase}.

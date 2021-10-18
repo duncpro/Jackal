@@ -1,7 +1,10 @@
 package com.duncpro.jackal;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @NotThreadSafe
@@ -27,11 +30,39 @@ public interface SQLStatementBuilder {
     }
 
     /**
+     * Executes the query and immediately fetches the entire result set from the database.
+     * This function has a number of advantages over {@link #startQuery()} but should only
+     * be used with queries that contain a LIMIT clause. This function automatically closes
+     * all resources associated with the query, regardless of if an exception is thrown.
+     * There is no need to wrap the returned stream in a try-with-resources block.
+     * @throws RelationalDatabaseException if an error occurs while fetching ANY of the results
+     * from the database.
+     */
+    default Stream<QueryResultRow> executeQuery() throws RelationalDatabaseException {
+        final List<QueryResultRow> bufferedResults;
+        try (final var results = startQuery()) {
+            bufferedResults = results.collect(Collectors.toList());
+        } catch (UncheckedRelationalDatabaseException e) {
+            throw e.getCause();
+        }
+        return bufferedResults.stream();
+    }
+
+    /**
      * Executes a query on the database and returns the result as a stream of {@link QueryResultRow}.
-     * To prevent resource leaks the caller should always close the stream after use.
+     *
+     * Some implementations might lazily fetch rows from the database. To prevent resource leaks the caller
+     * should always close the stream after use. The method {@link #executeQuery()} offers an alternative
+     * to this method which prefetches all results from the database and closes the stream automatically.
+     * For (LIMIT)ed result sets consider using the more ergonomic {@link #executeQuery()} function.
+     *
+     * If an error occurs while executing the query, an {@link UncheckedRelationalDatabaseException}
+     * will be thrown upon invoking a terminal operator on the returned stream. This exception should
+     * be treated with the semantics of a checked exception.
+     *
      * @throws IllegalStateException if one or more parameters are missing arguments.
      */
-    Stream<QueryResultRow> executeQuery();
+    Stream<QueryResultRow> startQuery();
 
     /**
      * Executes an update on the database and returns a {@link CompletableFuture} which completes after the
@@ -42,5 +73,11 @@ public interface SQLStatementBuilder {
     /**
      * Executes an update on the database and blocks the current thread until the update has completed.s
      */
-    void executeUpdate() throws RelationalDatabaseException;
+    default void executeUpdate() throws RelationalDatabaseException {
+        try {
+            startUpdate().join();
+        } catch (CompletionException e) {
+            FutureUtils.unwrapCompletionException(e);
+        }
+    }
 }
