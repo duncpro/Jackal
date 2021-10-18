@@ -3,7 +3,7 @@
 [![codecov](https://codecov.io/gh/duncpro/jackal/branch/master/graph/badge.svg?token=B5MZD14GUT)](https://codecov.io/gh/duncpro/jackal)
 [![](https://jitpack.io/v/com.duncpro/jackal.svg)](https://jitpack.io/#com.duncpro/jackal)
 
-Wrapper around RDS Data API (AWS SDK v2) with support for local testing.
+Abstraction over the RDS Data API and JDBC.
 Jackal makes it possible to build applications that take advantage of the scalability provided by the Aurora Data API,
 but can also be run locally during development and testing.
 
