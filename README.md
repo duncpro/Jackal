@@ -69,7 +69,7 @@ db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
 
 ### Transaction API
 ```java
-try (final UnscopedTransactionHandle transaction = db.startTransaction()) {
+try (final var transaction = db.startTransaction()) {
     transaction.prepareStatement("ALTER TABLE Person ADD last_name VARCHAR;")
         .executeUpdate();
     transaction.commit();
