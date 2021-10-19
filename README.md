@@ -35,9 +35,8 @@ final CompletableFuture<Void> u2 = /* .. */
 CompletableFuture.allOf(u1, u2);
 ```
 ### Sequential Updates
-In some cases, parallelization of updates introduces complexity without adding much of 
-For these instances, consider using the `SQLStatementBuilder#executeUpdate` convenience method. 
-This will block the current thread until the update is complete.
+`SQLStatementBuilder#executeUpdate` is an alternative to the aforementioned method which blocks
+the current thread until the update has completed successfully. 
 
 ### Queries Using Java 8's Stream
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
