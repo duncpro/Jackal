@@ -4,10 +4,8 @@ plugins {
     `maven-publish`
 }
 
-val lombokVersion by extra { "1.18.20" }
-
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-9"
+version = "1.0-SNAPSHOT-10"
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
@@ -36,13 +34,6 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.15.0"))
     implementation("software.amazon.awssdk:rdsdata")
     implementation("org.slf4j:slf4j-api:1.7.31")
-
-    compileOnly("org.projectlombok:lombok:${lombokVersion}")
-    annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    testCompileOnly("org.projectlombok:lombok:${lombokVersion}")
-    intTestCompileOnly("org.projectlombok:lombok:${lombokVersion}")
-    testAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
-    intTestAnnotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
     testImplementation("junit:junit:4.13")
 

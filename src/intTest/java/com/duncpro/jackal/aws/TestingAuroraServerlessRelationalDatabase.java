@@ -1,7 +1,5 @@
 package com.duncpro.jackal.aws;
 
-import lombok.Value;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Optional;
@@ -12,10 +10,14 @@ public class TestingAuroraServerlessRelationalDatabase extends DefaultAuroraServ
         super(getIdentity().dbArn, getIdentity().secretArn);
     }
 
-    @Value
     private static class TestingDatabaseIdentity {
         String dbArn;
         String secretArn;
+
+        public TestingDatabaseIdentity(String dbArn, String secretArn) {
+            this.dbArn = dbArn;
+            this.secretArn = secretArn;
+        }
     }
 
     private static TestingDatabaseIdentity getIdentity() throws IOException {

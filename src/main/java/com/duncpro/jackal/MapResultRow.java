@@ -1,7 +1,5 @@
 package com.duncpro.jackal;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.Map;
 import java.util.Optional;
 

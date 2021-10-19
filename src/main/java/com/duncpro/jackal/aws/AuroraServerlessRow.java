@@ -1,7 +1,6 @@
 package com.duncpro.jackal.aws;
 
 import com.duncpro.jackal.QueryResultRow;
-import lombok.RequiredArgsConstructor;
 import software.amazon.awssdk.services.rdsdata.model.Field;
 
 import java.math.BigDecimal;
@@ -9,9 +8,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@RequiredArgsConstructor
 public class AuroraServerlessRow implements QueryResultRow {
     private final Map<String, Field> awsRow;
+
+    public AuroraServerlessRow(Map<String, Field> awsRow) {
+        this.awsRow = Map.copyOf(awsRow);
+    }
 
     @Override
     public <T> Optional<T> get(String columnName, Class<T> javaType) {

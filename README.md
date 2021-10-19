@@ -36,7 +36,7 @@ CompletableFuture.allOf(u1, u2);
 ```
 ### Sequential Updates
 `SQLStatementBuilder#executeUpdate` is an alternative to the aforementioned method which blocks
-the current thread until the update has completed successfully. 
+the current thread until the update has completed. 
 
 ### Queries Using Java 8's Stream
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
