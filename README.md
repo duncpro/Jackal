@@ -4,35 +4,31 @@
 [![](https://jitpack.io/v/com.duncpro/jackal.svg)](https://jitpack.io/#com.duncpro/jackal)
 
 Abstraction over RDS Aurora Data API and JDBC for Java 8.
-Run your RDS Aurora Data API dependent applications locally using JDBC.
+Run your RDS Aurora Data API dependent applications locally using JDBC. 
 
 ## Overview
 ### Using Jackal with the Aurora Data API
 In production and staging environments your application will likely be using
-a real Aurora database. `AmazonDataAPIDatabase` is an implementation of `RelationalDatabase` which wraps
+a real Aurora database. `AuroraServerlessRelationalDatabase` is an implementation of `RelationalDatabase` which wraps
 the Aurora Data API Client included in AWS SDK v2.
 ```java
-final RelationalDatabase db = new AmazonDataAPIDatabase(/* */);
+final RelationalDatabase db = new AuroraServerlessRelationalDatabase(/* */);
 ```
 ### Using Jackal with JDBC
-In development/testing scenarios it's advantageous to use a locally hosted or in-memory database instead
-of an actual Aurora database. Among other advantages, using a JDBC database enables you to potentially work offline,
-save on AWS costs, and develop in a more transparent environment. Additionally, the included JDBC support
-provides an escape-hatch if you ever choose to move away from AWS/RDS.
-
+In development/testing scenarios you're likely using a locally hosted or in-memory database.
 Jackal provides a second implementation of `RelationalDatabase`
 which wraps a standard JDBC `DataSource`. 
 ```java
 final RelationalDatabase db = new DataSourceWrapper(/* */);
 ```
-### Parallel Updates using CompletableFuture
-Since the Aurora Data API is built on top of AWS SDK v2 and therefore HTTP, performance can be improved by running updates in parallel. 
-`SQLStatementBuilder#startUpdate` returns a `CompletableFuture` making it easy to perform multiple updates
+### Async Updates using CompletableFuture
+Since the Aurora Data API is built on top of AWS SDK v2 and therefore Netty, performance can be improved by executing 
+updates asynchronously. `SQLStatementBuilder#executeUpdateAsync` returns a `CompletableFuture` making it easy to perform multiple updates
 simultaneously.
 ```java
 final CompletableFuture<Void> u1 = db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
         .withArguments("Duncan Proctor", 23, true)
-        .startUpdate();
+        .executeUpdateAsync();
 
 final CompletableFuture<Void> u2 = /* .. */
         
@@ -40,13 +36,12 @@ CompletableFuture.allOf(u1, u2);
 ```
 ### Sequential Updates
 In some cases, parallelization of updates introduces complexity without adding much of 
-a performance benefit, like in a short-lived AWS Lambda function. For these instances, consider using
-the `SQLStatementBuilder#executeUpdate` convenience method. This will block the current thread until
-the update is complete.
+For these instances, consider using the `SQLStatementBuilder#executeUpdate` convenience method. 
+This will block the current thread until the update is complete.
 
 ### Queries Using Java 8's Stream
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
-traditional JDBC.
+traditional JDBC. This function prefetches all results and closes any resources associated with the query.
 ```java
 final Set<String> firstNames = db.prepareStatement("SELECT first_name FROM person LIMIT 10;")
         .executeQuery()
@@ -54,27 +49,8 @@ final Set<String> firstNames = db.prepareStatement("SELECT first_name FROM perso
         .map(Optional::orElseThrow) // first_name is a NOT NULL column
         .collect(Collectors.toSet())
 ```
-### Incrementally Fetching Query Results
-The aforementioned function, `executeQuery`, prefetches all results and closes any resources associated with the query. 
-In some cases prefetching might detriment performance so the function `startQuery` is provided as a companion.
-This function incrementally fetches rows from the database, but only If the implementation of `RelationalDatabase`
-which provided the `SQLStatementBuilder` supports incremental fetching.
-```java
-try (final var results = db.prepareStatement("SELECT first_name FROM person ORDER BY first_name DESC;")
-        .startQuery()) {
-    
-    match = results.map(row -> row.get("first_name", String.class))
-        .map(Optional::orElseThrow)
-        .map(/* kick off some CompletableFutures */)
-        .filter(/* Some expensive filtering function */)
-        .findFirst();
-}
-```
-Currently, only `DataSourceWrapper` supports incremental fetching. All `AmazonDataAPIDatabase` queries
-are prefetched regardless of which query function is used. 
-
-If a database error occurs while fetching a row, then `UncheckedRelationalDatabaseException`
-is thrown by the terminal operator function, for example: `collect`.
+There is a second variant to this function, `executeQueryAsync` which returns a `CompletableFuture`. This is useful for 
+performing queries concurrently.
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
 
@@ -91,7 +67,8 @@ Rollbacks however are implicit. If `TransactionHandle#close` is called before
 the transaction will be automatically rolled back.
 ```java
 try (final var transaction = db.startTransaction()) {
-    transaction.prepareStatement("ALTER TABLE Person ADD last_name VARCHAR;")
+    transaction.prepareStatement("INSERT INTO Person VALUES (?);")
+        .withArguments("Bob")
         .executeUpdate();
     transaction.commit();
 } catch (RelationalDatabaseException e) {

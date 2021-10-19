@@ -1,17 +1,16 @@
 package com.duncpro.jackal;
 
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.*;
+import static java.util.concurrent.CompletableFuture.failedFuture;
+import static java.util.stream.Collectors.toList;
 
-public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
+public class SQLStatementBuilderBase implements SQLStatementBuilder {
     protected final String parameterizedSQL;
     protected final int paramCount;
     protected final List<Object> args;
@@ -24,7 +23,7 @@ public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
     }
 
     @Override
-    public SQLStatementBuilder withArguments(Object... args) {
+    public final SQLStatementBuilder withArguments(Object... args) {
         if (args.length + this.args.size() > paramCount) {
             throw new IndexOutOfBoundsException("There are " + paramCount + " parameters in the statement" +
                     " but " + (args.length + this.args.size()) + " arguments have been given. (Did you forget to " +
@@ -36,22 +35,32 @@ public abstract class SQLStatementBuilderBase implements SQLStatementBuilder {
         return this;
     }
 
-    public final Stream<QueryResultRow> startQuery() {
+    private void assertEnoughArgs() {
         if (args.size() < paramCount) {
             throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
         }
-        return executeQueryImpl();
     }
 
     @Override
-    public final CompletableFuture<Void> startUpdate() {
-        if (args.size() < paramCount) {
-            throw new IllegalStateException("Statement is incomplete. One or more parameters are missing arguments.");
-        }
-        return executeUpdateImpl();
+    public CompletableFuture<Void> executeUpdateAsync() {
+        assertEnoughArgs();
+        return failedFuture(new UnsupportedOperationException());
     }
 
-    protected abstract Stream<QueryResultRow> executeQueryImpl();
+    @Override
+    public void executeUpdate() throws RelationalDatabaseException {
+        assertEnoughArgs();
+    }
 
-    protected abstract CompletableFuture<Void> executeUpdateImpl();
+    @Override
+    public CompletableFuture<Stream<QueryResultRow>> executeQueryAsync() {
+        assertEnoughArgs();
+        return failedFuture(new UnsupportedOperationException());
+    }
+
+    @Override
+    public Stream<QueryResultRow> executeQuery() throws RelationalDatabaseException {
+        assertEnoughArgs();
+        return Stream.generate(() -> { throw new UnsupportedOperationException(); });
+    }
 }
