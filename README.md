@@ -36,11 +36,11 @@ final CompletableFuture<Void> u2 = /* .. */
 CompletableFuture.allOf(u1, u2);
 ```
 ### Sequential Updates
-`SQLStatementBuilder#executeUpdate` is an alternative to the aforementioned method which blocks
+`InterpolatableSQLStatement#executeUpdate` is an alternative to the aforementioned method which blocks
 the current thread until the update has completed. 
 
 ### Queries Using Java 8's Stream
-`SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
+`InterpolatableSQLStatement#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
 traditional JDBC. This function prefetches all results and closes any resources associated with the query.
 ```java
 final Set<String> firstNames = sql("SELECT first_name FROM person LIMIT 10;")
