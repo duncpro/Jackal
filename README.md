@@ -9,7 +9,7 @@ Run your RDS Aurora Data API dependent applications locally using JDBC.
 ## Overview
 ### Using Jackal with the Aurora Data API
 In production and staging environments your application will likely be using
-a real Aurora database. `AuroraServerlessDatabase` is an implementation of `SQLException` which wraps
+a real Aurora database. `AuroraServerlessDatabase` is an implementation of `SQLDatabase` which wraps
 the Aurora Data API Client included in AWS SDK v2.
 ```java
 final SQLDatabase db = new AuroraServerlessDatabase(/* */);
