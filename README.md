@@ -76,7 +76,7 @@ try (final var transaction = db.startTransaction()) {
 }
 ```
 ### Exceptions
-`com.duncpro.jacak.SQLException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
+`com.duncpro.jackal.SQLException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
 All Jackal functions throw `RelationalDatabaseException` but the underlying platform-specific exception
 can still be accessed via `Exception#getCause` if necessary.
 
