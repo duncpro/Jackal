@@ -71,7 +71,7 @@ try (final var transaction = db.startTransaction()) {
         .withArguments("Bob")
         .executeUpdate(transaction);
     transaction.commit();
-} catch (RelationalDatabaseException e) {
+} catch (com.duncpro.jackal.SQLException e) {
     e.printStackTrace();
 }
 ```
