@@ -1,38 +1,63 @@
 package com.duncpro.jackal.jdbc;
 
-
-
-import com.duncpro.jackal.RelationalDatabase;
-import com.duncpro.jackal.RelationalDatabaseException;
-import com.duncpro.jackal.RelationalDatabaseTransactionHandle;
-import com.duncpro.jackal.SQLStatementBuilder;
-import org.intellij.lang.annotations.Language;
+import com.duncpro.jackal.SQLDatabase;
+import com.duncpro.jackal.SQLException;
+import com.duncpro.jackal.SQLExecutor;
+import com.duncpro.jackal.SQLTransaction;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
+import java.sql.Connection;
 import java.util.concurrent.ExecutorService;
 
-public class DataSourceWrapper implements RelationalDatabase {
-    protected final DataSource dataSource;
-    protected final ExecutorService executor;
+public class DataSourceWrapper extends SQLDatabase {
+    final ExecutorService taskExecutor;
+    final DataSource dataSource;
 
-    public DataSourceWrapper(DataSource dataSource, ExecutorService executor) {
+    public DataSourceWrapper(final ExecutorService taskExecutor, final DataSource dataSource) {
+        this.taskExecutor = taskExecutor;
         this.dataSource = dataSource;
-        this.executor = executor;
     }
 
-
     @Override
-    public RelationalDatabaseTransactionHandle startTransaction() throws RelationalDatabaseException {
+    public SQLTransaction startTransaction() throws SQLException {
+        final Connection connection;
         try {
-            return new JDBCTransactionHandle(executor, dataSource.getConnection());
-        } catch (SQLException e) {
-            throw new RelationalDatabaseException(e);
+            connection = dataSource.getConnection();
+        }  catch (java.sql.SQLException e) {
+            throw new SQLException(e);
         }
+
+        try {
+            connection.setAutoCommit(false);
+        } catch (java.sql.SQLException e) {
+            try {
+                connection.close();
+            } catch (java.sql.SQLException e1) {
+                e.addSuppressed(e1);
+            }
+            throw new SQLException(e);
+        }
+
+        return new JDBCTransaction(taskExecutor, connection);
+    }
+
+    private Connection getAutoCommitConnection() throws java.sql.SQLException {
+        final var con = dataSource.getConnection();
+        try {
+            con.setAutoCommit(true);
+        } catch (java.sql.SQLException e) {
+            try {
+                con.close();
+            } catch (java.sql.SQLException e1) {
+                e.addSuppressed(e1);
+            }
+            throw e;
+        }
+        return con;
     }
 
     @Override
-    public SQLStatementBuilder prepareStatement(String parameterizedSQL) {
-        return new JDBCStatementBuilder(dataSource::getConnection, true, executor, parameterizedSQL);
+    public SQLExecutor getExecutor() {
+        return new JDBCSQLExecutor(taskExecutor, this::getAutoCommitConnection, true);
     }
 }

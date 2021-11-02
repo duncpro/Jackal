@@ -5,27 +5,17 @@ import java.io.InputStreamReader;
 import java.util.Optional;
 import java.util.Properties;
 
-public class TestingAuroraServerlessRelationalDatabase extends DefaultAuroraServerlessRelationalDatabase {
+public class TestingAuroraServerlessRelationalDatabase extends DefaultAuroraServerlessDatabase {
     public TestingAuroraServerlessRelationalDatabase() throws IOException {
-        super(getIdentity().dbArn, getIdentity().secretArn);
+        super(getCredentials());
     }
 
-    private static class TestingDatabaseIdentity {
-        String dbArn;
-        String secretArn;
-
-        public TestingDatabaseIdentity(String dbArn, String secretArn) {
-            this.dbArn = dbArn;
-            this.secretArn = secretArn;
-        }
+    private static AuroraServerlessCredentials getCredentials() throws IOException {
+        return loadCredentialsFromFileSystem()
+                .orElseGet(TestingAuroraServerlessRelationalDatabase::loadCredentialsFromEnvironment);
     }
 
-    private static TestingDatabaseIdentity getIdentity() throws IOException {
-        return loadAWSResourcesFromFileSystem()
-                .orElseGet(TestingAuroraServerlessRelationalDatabase::loadAWSResourcesFromEnvironment);
-    }
-
-    private static Optional<TestingDatabaseIdentity> loadAWSResourcesFromFileSystem() throws IOException {
+    private static Optional<AuroraServerlessCredentials> loadCredentialsFromFileSystem() throws IOException {
         final var propertiesFs = TestingAuroraServerlessRelationalDatabase.class
                 .getResourceAsStream("/rds-instance.properties");
 
@@ -37,15 +27,15 @@ public class TestingAuroraServerlessRelationalDatabase extends DefaultAuroraServ
             properties.load(reader);
         }
         return Optional.of(
-                new TestingDatabaseIdentity(
+                new AuroraServerlessCredentials(
                         properties.getProperty("dbArn"),
                         properties.getProperty("secretArn")
                 )
         );
     }
 
-    private static TestingDatabaseIdentity loadAWSResourcesFromEnvironment() {
-        return new TestingDatabaseIdentity(
+    private static AuroraServerlessCredentials loadCredentialsFromEnvironment() {
+        return new AuroraServerlessCredentials(
                 System.getenv("AWS_DB_ARN"),
                 System.getenv("AWS_DB_SECRET_ARN")
         );

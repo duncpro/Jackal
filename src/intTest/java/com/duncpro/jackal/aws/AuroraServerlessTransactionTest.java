@@ -1,6 +1,6 @@
 package com.duncpro.jackal.aws;
 
-import com.duncpro.jackal.RelationalDatabaseException;
+import com.duncpro.jackal.SQLException;
 import com.duncpro.jackal.TransactionTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -14,7 +14,7 @@ public class AuroraServerlessTransactionTest extends TransactionTest {
     }
 
     @AfterClass
-    public static void teardown() throws RelationalDatabaseException {
-        ((DefaultAuroraServerlessRelationalDatabase) db).close();
+    public static void teardown() throws SQLException {
+        ((DefaultAuroraServerlessDatabase) db).close();
     }
 }

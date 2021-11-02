@@ -9,26 +9,27 @@ Run your RDS Aurora Data API dependent applications locally using JDBC.
 ## Overview
 ### Using Jackal with the Aurora Data API
 In production and staging environments your application will likely be using
-a real Aurora database. `AuroraServerlessRelationalDatabase` is an implementation of `RelationalDatabase` which wraps
+a real Aurora database. `AuroraServerlessDatabase` is an implementation of `SQLException` which wraps
 the Aurora Data API Client included in AWS SDK v2.
 ```java
-final RelationalDatabase db = new AuroraServerlessRelationalDatabase(/* */);
+final SQLDatabase db = new AuroraServerlessDatabase(/* */);
 ```
 ### Using Jackal with JDBC
 In development/testing scenarios you're likely using a locally hosted or in-memory database.
-Jackal provides a second implementation of `RelationalDatabase`
+Jackal provides a second implementation of `SQLException`
 which wraps a standard JDBC `DataSource`. 
 ```java
-final RelationalDatabase db = new DataSourceWrapper(/* */);
+final SQLDatabase db = new DataSourceWrapper(/* */);
 ```
 ### Async Updates using CompletableFuture
 Since the Aurora Data API is built on top of AWS SDK v2 and therefore Netty, performance can be improved by executing 
-updates asynchronously. `SQLStatementBuilder#executeUpdateAsync` returns a `CompletableFuture` making it easy to perform multiple updates
-simultaneously.
+updates asynchronously.
 ```java
-final CompletableFuture<Void> u1 = db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
-        .withArguments("Duncan Proctor", 23, true)
-        .executeUpdateAsync();
+import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
+
+final CompletableFuture<Void> u1 = sql("INSERT INTO person VALUES (?, ?, ?);")
+            .withArguments("Duncan Proctor", 23, true)
+            .executeUpdateAsync(db);
 
 final CompletableFuture<Void> u2 = /* .. */
         
@@ -42,8 +43,8 @@ the current thread until the update has completed.
 `SQLStatementBuilder#executeQuery` returns a `Stream` which makes processing result sets much more ergonomic than
 traditional JDBC. This function prefetches all results and closes any resources associated with the query.
 ```java
-final Set<String> firstNames = db.prepareStatement("SELECT first_name FROM person LIMIT 10;")
-        .executeQuery()
+final Set<String> firstNames = sql("SELECT first_name FROM person LIMIT 10;")
+        .executeQuery(db)
         .map(row -> row.get("first_name", String.class))
         .map(Optional::orElseThrow) // first_name is a NOT NULL column
         .collect(Collectors.toSet())
@@ -54,28 +55,28 @@ performing queries concurrently.
 Jackal supports statement parameterization using JDBC-like syntax.
 
 ```java
-db.prepareStatement("INSERT INTO person VALUES (?, ?, ?);")
+sql("INSERT INTO person VALUES (?, ?, ?);")
         .withArguments("Duncan Proctor", 23, true)
-        .executeUpdate()
+        .executeUpdate(db)
 ```
 
 ### Transaction API
 Transactions must be explicitly committed using the `commit` method.
-Rollbacks however are implicit. If `TransactionHandle#close` is called before
-`TransactionHandle#commit`, like in the case of a mid-transaction exception, then
+Rollbacks however are implicit. If `SQLTransaction#close` is called before
+`SQLTransaction#commit`, like in the case of a mid-transaction exception, then
 the transaction will be automatically rolled back.
 ```java
 try (final var transaction = db.startTransaction()) {
-    transaction.prepareStatement("INSERT INTO Person VALUES (?);")
+    sql("INSERT INTO Person VALUES (?);")
         .withArguments("Bob")
-        .executeUpdate();
+        .executeUpdate(transaction);
     transaction.commit();
 } catch (RelationalDatabaseException e) {
     e.printStackTrace();
 }
 ```
 ### Exceptions
-`RelationalDatabaseException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
+`com.duncpro.jacak.SQLException` serves as an abstraction over Java's `SQLException` and RDS's `SdkException`.
 All Jackal functions throw `RelationalDatabaseException` but the underlying platform-specific exception
 can still be accessed via `Exception#getCause` if necessary.
 

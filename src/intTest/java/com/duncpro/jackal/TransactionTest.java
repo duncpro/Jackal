@@ -4,53 +4,56 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @Ignore
 public class TransactionTest {
-    protected static RelationalDatabase db = null;
+    protected static SQLDatabase db = null;
 
     @Before
-    public void createTables() throws RelationalDatabaseException {
-        db.prepareStatement("DROP TABLE IF EXISTS Person;").executeUpdate();
-        db.prepareStatement("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);").executeUpdate();
+    public void createTables() throws SQLException {
+        sql("DROP TABLE IF EXISTS Person;")
+                .executeUpdate(db);
+        sql("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);")
+                .executeUpdate(db);
     }
 
     @Test
-    public void commitTransactionTest() throws RelationalDatabaseException {
+    public void commitTransactionTest() throws SQLException {
         try (final var transaction = db.startTransaction()) {
-            transaction.prepareStatement("INSERT INTO Person (first_name) VALUES (?);")
+            sql("INSERT INTO Person (first_name) VALUES (?);")
                     .withArguments("Ben")
-                    .executeUpdate();
+                    .executeUpdate(transaction);
             transaction.commit();
-        } catch (RelationalDatabaseException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             fail();
         }
 
-        db.prepareStatement("SELECT first_name FROM Person WHERE first_name = ?;")
+        sql("SELECT first_name FROM Person WHERE first_name = ?;")
                 .withArguments("Ben")
-                .executeQuery()
+                .executeQuery(db)
                 .findAny()
                 .orElseThrow();
     }
 
     @Test
-    public void implicitRollbackTest() throws RelationalDatabaseException {
+    public void implicitRollbackTest() throws SQLException {
         try (final var transaction = db.startTransaction()) {
-            transaction.prepareStatement("INSERT INTO Person (first_name) VALUES (?);")
+            sql("INSERT INTO Person (first_name) VALUES (?);")
                     .withArguments("Ben")
-                    .executeUpdate();
+                    .executeUpdate(transaction);
 //            transaction.commit();
-        } catch (RelationalDatabaseException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
             fail();
         }
 
-        final var wasRolledBack = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = ?;")
+        final var wasRolledBack = sql("SELECT first_name FROM Person WHERE first_name = ?;")
                 .withArguments("Ben")
-                .executeQuery()
+                .executeQuery(db)
                 .findAny()
                 .isEmpty();
 

@@ -2,33 +2,34 @@ package com.duncpro.jackal;
 
 import java.util.concurrent.CompletionException;
 
+import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
 import static org.junit.Assert.*;
 
 public class ExceptionalBehaviorTest {
-    protected RelationalDatabase brokenRelationalDatabase = null;
+    protected SQLDatabase brokenRelationalDatabase = null;
 
     public Throwable throwsExceptionUponNewTransaction() {
-        return assertThrows(RelationalDatabaseException.class,
+        return assertThrows(SQLException.class,
                 () -> brokenRelationalDatabase.startTransaction());
     }
 
     public Throwable throwsExceptionUponExecuteUpdate() {
-        return assertThrows(RelationalDatabaseException.class,
-                () -> brokenRelationalDatabase.prepareStatement("").executeUpdate());
+        return assertThrows(SQLException.class,
+                () -> sql("").executeUpdate(brokenRelationalDatabase));
     }
 
     public Throwable throwsExceptionUponExecuteUpdateAsync() {
         return assertThrows(CompletionException.class,
-                () -> brokenRelationalDatabase.prepareStatement("").executeUpdateAsync().join());
+                () -> sql("").executeUpdateAsync(brokenRelationalDatabase).join());
     }
 
     public Throwable throwsExceptionUponExecuteQueryAsync() {
         return assertThrows(CompletionException.class,
-                () -> brokenRelationalDatabase.prepareStatement("").executeQueryAsync().join());
+                () -> sql("").executeQueryAsync(brokenRelationalDatabase).join());
     }
 
     public Throwable throwsExceptionUponExecuteQuery() {
-        return assertThrows(RelationalDatabaseException.class,
-                () -> brokenRelationalDatabase.prepareStatement("").executeQuery());
+        return assertThrows(SQLException.class,
+                () -> sql("").executeQuery(brokenRelationalDatabase));
     }
 }

@@ -1,7 +1,7 @@
 package com.duncpro.jackal.aws;
 
 import com.duncpro.jackal.ExceptionalBehaviorTest;
-import com.duncpro.jackal.RelationalDatabaseException;
+import com.duncpro.jackal.SQLException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,12 +12,13 @@ import static org.junit.Assert.assertTrue;
 public class AuroraServerlessExceptionalBehaviorTest extends ExceptionalBehaviorTest {
     @Before
     public void setup() {
-        super.brokenRelationalDatabase = new DefaultAuroraServerlessRelationalDatabase("", "");
+        super.brokenRelationalDatabase =
+                new DefaultAuroraServerlessDatabase(new AuroraServerlessCredentials("", ""));
     }
 
     @After
-    public void teardown() throws RelationalDatabaseException {
-        ((DefaultAuroraServerlessRelationalDatabase) super.brokenRelationalDatabase).close();
+    public void teardown() throws SQLException {
+        ((DefaultAuroraServerlessDatabase) super.brokenRelationalDatabase).close();
     }
 
     @Test
@@ -35,14 +36,14 @@ public class AuroraServerlessExceptionalBehaviorTest extends ExceptionalBehavior
     @Test
     public void throwsExceptionWithValidCauseUponExecuteUpdateAsync() {
         final var thrown = super.throwsExceptionUponExecuteUpdateAsync();
-        assertTrue(RelationalDatabaseException.class.isAssignableFrom(thrown.getCause().getClass()));
+        assertTrue(SQLException.class.isAssignableFrom(thrown.getCause().getClass()));
         assertTrue(SdkException.class.isAssignableFrom(thrown.getCause().getCause().getClass()));
     }
 
     @Test
     public void throwsExceptionWithValidCauseUponExecuteQueryAsync() {
         final var thrown = super.throwsExceptionUponExecuteQueryAsync();
-        assertTrue(RelationalDatabaseException.class.isAssignableFrom(thrown.getCause().getClass()));
+        assertTrue(SQLException.class.isAssignableFrom(thrown.getCause().getClass()));
         assertTrue(SdkException.class.isAssignableFrom(thrown.getCause().getCause().getClass()));
     }
 

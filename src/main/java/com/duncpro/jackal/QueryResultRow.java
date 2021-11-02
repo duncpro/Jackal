@@ -12,8 +12,4 @@ public interface QueryResultRow {
      * not exist within the row.
      */
     <T> Optional<T> get(String columnName, Class<T> javaType);
-
-    static QueryResultRow fromMap(Map<String, Object> map) {
-        return new MapResultRow(map);
-    }
 }

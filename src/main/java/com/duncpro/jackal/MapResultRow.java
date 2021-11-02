@@ -1,8 +1,10 @@
 package com.duncpro.jackal;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.Map;
 import java.util.Optional;
 
+@Immutable
 public class MapResultRow implements QueryResultRow {
     private final Map<String, Object> columnValueMap;
 

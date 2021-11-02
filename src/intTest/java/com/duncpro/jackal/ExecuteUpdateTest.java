@@ -6,33 +6,34 @@ import org.junit.Test;
 
 import java.util.concurrent.CompletionException;
 
+import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @Ignore
 public class ExecuteUpdateTest {
-    protected static RelationalDatabase db = null;
+    protected static SQLDatabase db = null;
 
     @Before
-    public void createTables() throws RelationalDatabaseException {
-        db.prepareStatement("DROP TABLE IF EXISTS Person;").executeUpdate();
-        db.prepareStatement("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);").executeUpdate();
+    public void createTables() throws SQLException {
+        sql("DROP TABLE IF EXISTS Person;").executeUpdate(db);
+        sql("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);").executeUpdate(db);
     }
 
     @Test
-    public void executeUpdateTest() throws RelationalDatabaseException {
+    public void executeUpdateTest() throws SQLException {
         try {
-            db.prepareStatement("INSERT INTO Person (first_name) VALUES (?);")
+            sql("INSERT INTO Person (first_name) VALUES (?);")
                     .withArguments("Duncan")
-                    .executeUpdate();
-        } catch (RelationalDatabaseException e) {
+                    .executeUpdate(db);
+        } catch (SQLException e) {
             e.printStackTrace();
             fail("executeUpdate call failed");
         }
 
-        final boolean didInsert = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = (?)")
+        final boolean didInsert = sql("SELECT first_name FROM Person WHERE first_name = (?)")
                 .withArguments("Duncan")
-                .executeQuery()
+                .executeQuery(db)
                 .findAny()
                 .isPresent();
 
@@ -40,20 +41,20 @@ public class ExecuteUpdateTest {
     }
 
     @Test
-    public void executeUpdateAsyncTest() throws RelationalDatabaseException {
+    public void executeUpdateAsyncTest() throws SQLException {
         try {
-            db.prepareStatement("INSERT INTO Person (first_name) VALUES (?);")
+            sql("INSERT INTO Person (first_name) VALUES (?);")
                     .withArguments("Duncan")
-                    .executeUpdateAsync()
+                    .executeUpdateAsync(db)
                     .join();
         } catch (CompletionException e) {
             e.printStackTrace();
             fail("executeUpdateAsync join failed");
         }
 
-        final boolean didInsert = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = (?)")
+        final boolean didInsert = sql("SELECT first_name FROM Person WHERE first_name = (?)")
                 .withArguments("Duncan")
-                .executeQuery()
+                .executeQuery(db)
                 .findAny()
                 .isPresent();
 

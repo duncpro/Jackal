@@ -6,26 +6,27 @@ import org.junit.Test;
 
 import java.util.stream.Collectors;
 
+import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
 import static org.junit.Assert.*;
 
 @Ignore
 public class ExecuteQueryTest {
-    protected static RelationalDatabase db = null;
+    protected static SQLDatabase db = null;
 
     @Before
-    public void createTables() throws RelationalDatabaseException {
-        db.prepareStatement("DROP TABLE IF EXISTS Person;").executeUpdate();
-        db.prepareStatement("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);").executeUpdate();
-        db.prepareStatement("INSERT INTO Person (first_name) VALUES (?);")
+    public void createTables() throws SQLException {
+        sql("DROP TABLE IF EXISTS Person;").executeUpdate(db);
+        sql("CREATE TABLE IF NOT EXISTS Person (first_name VARCHAR);").executeUpdate(db);
+        sql("INSERT INTO Person (first_name) VALUES (?);")
                 .withArguments("Duncan")
-                .executeUpdate();
+                .executeUpdate(db);
     }
 
     @Test
-    public void executeQueryTest() throws RelationalDatabaseException {
-        final var results = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = (?)")
+    public void executeQueryTest() throws SQLException {
+        final var results = sql("SELECT first_name FROM Person WHERE first_name = (?)")
                 .withArguments("Duncan")
-                .executeQuery()
+                .executeQuery(db)
                 .collect(Collectors.toList());
 
         assertEquals(1, results.size());
@@ -34,9 +35,9 @@ public class ExecuteQueryTest {
 
     @Test
     public void executeQueryAsyncTest() {
-        final var results = db.prepareStatement("SELECT first_name FROM Person WHERE first_name = (?)")
+        final var results = sql("SELECT first_name FROM Person WHERE first_name = (?)")
                 .withArguments("Duncan")
-                .executeQueryAsync()
+                .executeQueryAsync(db)
                 .join()
                 .collect(Collectors.toList());
 
