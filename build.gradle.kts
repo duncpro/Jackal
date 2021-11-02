@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-11"
+version = "1.0-SNAPSHOT-12"
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
