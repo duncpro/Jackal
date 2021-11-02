@@ -57,7 +57,7 @@ public class DataSourceWrapper extends SQLDatabase {
     }
 
     @Override
-    public SQLExecutor getExecutor() {
+    protected SQLExecutor getExecutor() {
         return new JDBCSQLExecutor(taskExecutor, this::getAutoCommitConnection, true);
     }
 }

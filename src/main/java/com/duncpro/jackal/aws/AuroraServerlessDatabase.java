@@ -37,7 +37,7 @@ public class AuroraServerlessDatabase extends SQLDatabase {
     }
 
     @Override
-    public SQLExecutor getExecutor() {
+    protected SQLExecutor getExecutor() {
         return new AuroraServerlessSQLExecutor(null, this.clients, this.credentials);
     }
 }
