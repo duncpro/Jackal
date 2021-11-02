@@ -9,5 +9,5 @@ public abstract class SQLDatabase extends SQLExecutorProvider {
      * will be performed in a single-statement auto-committed transaction.
      */
     @Override
-    public abstract SQLExecutor getExecutor();
+    protected abstract SQLExecutor getExecutor();
 }
