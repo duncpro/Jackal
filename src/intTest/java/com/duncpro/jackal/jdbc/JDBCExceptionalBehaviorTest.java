@@ -6,20 +6,23 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.duncpro.jackal.SQLException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertTrue;
 
 public class JDBCExceptionalBehaviorTest extends ExceptionalBehaviorTest {
+    private ExecutorService statementExecutor;
+
     @Before
     public void setup() {
-        brokenRelationalDatabase = new DataSourceWrapper(Executors.newSingleThreadExecutor(), new BasicDataSource());
+        statementExecutor = Executors.newSingleThreadExecutor();
+        brokenRelationalDatabase = new DataSourceWrapper(statementExecutor, new BasicDataSource());
     }
 
     @After
     public void teardown() {
-        ((DataSourceWrapper) brokenRelationalDatabase).taskExecutor.shutdownNow();
+        statementExecutor.shutdownNow();
     }
 
     @Test

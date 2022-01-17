@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.*;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -17,8 +18,8 @@ public class JDBCSQLExecutor extends BlockingSQLExecutor {
     private final ConnectionSupplier connection;
     private final boolean ownsConnection;
 
-    JDBCSQLExecutor(final ExecutorService taskExecutor, final ConnectionSupplier connection, final boolean ownsConnection) {
-        super(taskExecutor);
+    JDBCSQLExecutor(final Executor statementExecutor, final ConnectionSupplier connection, final boolean ownsConnection) {
+        super(statementExecutor);
         this.connection = connection;
         this.ownsConnection = ownsConnection;
     }

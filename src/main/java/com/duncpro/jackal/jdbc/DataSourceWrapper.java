@@ -7,14 +7,14 @@ import com.duncpro.jackal.SQLTransaction;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executor;
 
 public class DataSourceWrapper extends SQLDatabase {
-    final ExecutorService taskExecutor;
+    final Executor statementExecutor;
     final DataSource dataSource;
 
-    public DataSourceWrapper(final ExecutorService taskExecutor, final DataSource dataSource) {
-        this.taskExecutor = taskExecutor;
+    public DataSourceWrapper(final Executor statementExecutor, final DataSource dataSource) {
+        this.statementExecutor = statementExecutor;
         this.dataSource = dataSource;
     }
 
@@ -38,7 +38,7 @@ public class DataSourceWrapper extends SQLDatabase {
             throw new SQLException(e);
         }
 
-        return new JDBCTransaction(taskExecutor, connection);
+        return new JDBCTransaction(statementExecutor, connection);
     }
 
     private Connection getAutoCommitConnection() throws java.sql.SQLException {
@@ -58,6 +58,6 @@ public class DataSourceWrapper extends SQLDatabase {
 
     @Override
     protected SQLExecutor getExecutor() {
-        return new JDBCSQLExecutor(taskExecutor, this::getAutoCommitConnection, true);
+        return new JDBCSQLExecutor(statementExecutor, this::getAutoCommitConnection, true);
     }
 }

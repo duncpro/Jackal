@@ -1,20 +1,21 @@
 package com.duncpro.jackal;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 public abstract class BlockingSQLExecutor extends SQLExecutor {
-    private final ExecutorService taskExecutor;
+    private final Executor statementExecutor;
 
-    protected BlockingSQLExecutor(final ExecutorService taskExecutor) {
-        this.taskExecutor = taskExecutor;
+    protected BlockingSQLExecutor(final Executor statementExecutor) {
+        this.statementExecutor = statementExecutor;
     }
 
     @Override
     protected CompletableFuture<Void> executeUpdateAsync(InterpolatedSQLStatement sql) {
         final var future = new CompletableFuture<Void>();
-        taskExecutor.submit(() -> {
+        statementExecutor.execute(() -> {
             try {
                 executeUpdate(sql);
                 future.complete(null);
@@ -28,7 +29,7 @@ public abstract class BlockingSQLExecutor extends SQLExecutor {
     @Override
     protected CompletableFuture<Stream<QueryResultRow>> executeQueryAsync(InterpolatedSQLStatement sql) {
         final var future = new CompletableFuture<Stream<QueryResultRow>>();
-        taskExecutor.submit(() -> {
+        statementExecutor.execute(() -> {
             try {
                 future.complete(executeQuery(sql));
             } catch (SQLException e) {

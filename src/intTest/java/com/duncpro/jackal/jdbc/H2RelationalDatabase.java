@@ -3,6 +3,8 @@ package com.duncpro.jackal.jdbc;
 import org.apache.commons.dbcp2.BasicDataSource;
 
 import java.sql.SQLException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static com.duncpro.jackal.InterpolatableSQLStatement.sql;
@@ -18,7 +20,7 @@ public class H2RelationalDatabase extends DataSourceWrapper implements AutoClose
     @Override
     public void close() throws SQLException, com.duncpro.jackal.SQLException {
         sql("SHUTDOWN;").executeUpdate(this);
-        super.taskExecutor.shutdownNow();
+        ((ExecutorService) super.statementExecutor).shutdownNow();
         ((BasicDataSource) dataSource).close();
     }
 }
