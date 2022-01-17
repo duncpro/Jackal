@@ -37,4 +37,11 @@ public abstract class BlockingSQLExecutor extends SQLExecutor {
         });
         return future;
     }
+
+    /**
+     * The returned stream is not asynchronous, any terminal operations performed on the stream
+     * will block.
+     */
+    @Override
+    protected abstract Stream<QueryResultRow> executeQueryIncrementally(InterpolatedSQLStatement sql);
 }

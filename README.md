@@ -35,7 +35,7 @@ final CompletableFuture<Void> u2 = /* .. */
         
 CompletableFuture.allOf(u1, u2);
 ```
-### Sequential Updates
+### Blocking Updates
 `InterpolatableSQLStatement#executeUpdate` is an alternative to the aforementioned method which blocks
 the current thread until the update has completed. 
 
@@ -50,7 +50,13 @@ final Set<String> firstNames = sql("SELECT first_name FROM person LIMIT 10;")
         .collect(Collectors.toSet())
 ```
 There is a second variant to this function, `executeQueryAsync` which returns a `CompletableFuture`. This is useful for 
-performing queries concurrently.
+performing queries concurrently. 
+
+There is a third variant for his function: `executeQueryIncrementally` which does not prefetch results. Instead results
+are fetched on an as-needed basis. This variant should be used for potentially
+large query result sets. Not all client implementations support this method and therefore
+it should only be used when absolutely necessary. The JDBC implementation supports this method, but
+the RDS Aurora implementation will not, and will therefore throw `UnsupportedOperationException`.
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
 

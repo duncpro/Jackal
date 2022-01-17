@@ -11,5 +11,5 @@ public abstract class SQLTransaction extends SQLExecutorProvider implements Auto
      * returned executor will only be committed to the database after {@link #commit()} is invoked.
      */
     @Override
-    public abstract SQLExecutor getExecutor();
+    protected abstract SQLExecutor getExecutor();
 }

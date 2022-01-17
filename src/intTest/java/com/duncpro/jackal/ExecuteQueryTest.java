@@ -1,5 +1,6 @@
 package com.duncpro.jackal;
 
+import com.duncpro.jackal.aws.AuroraServerlessSQLExecutor;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -43,5 +44,18 @@ public class ExecuteQueryTest {
 
         assertEquals(1, results.size());
         assertEquals("Duncan", results.get(0).get("first_name", String.class).orElseThrow());
+    }
+
+    @Test
+    public void executeQueryIncrementallyTest() {
+        if (db.getExecutor() instanceof AuroraServerlessSQLExecutor) return;
+
+        try (final var results = sql("SELECT first_name FROM Person WHERE first_name = (?)")
+                .withArguments("Duncan")
+                .executeQueryIncrementally(db)) {
+            final var cachedResults = results.collect(Collectors.toList());
+            assertEquals(1, cachedResults.size());
+            assertEquals("Duncan", cachedResults.get(0).get("first_name", String.class).orElseThrow());
+        }
     }
 }

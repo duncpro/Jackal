@@ -81,4 +81,11 @@ public class AuroraServerlessSQLExecutor extends SQLExecutor {
             throw new SQLException(e);
         }
     }
+
+    @Override
+    protected Stream<QueryResultRow> executeQueryIncrementally(InterpolatedSQLStatement sql) {
+        throw new UnsupportedOperationException("The RDS Aurora Serverless API does not support incremental result" +
+                " fetching. For consistently small result sets #executeQuery will suffice. For larger datasets" +
+                " consider using a database client implementation which supports streaming results, for example JDBC.");
+    }
 }

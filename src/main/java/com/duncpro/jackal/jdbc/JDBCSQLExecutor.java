@@ -5,11 +5,13 @@ import com.duncpro.jackal.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 public class JDBCSQLExecutor extends BlockingSQLExecutor {
     private final ConnectionSupplier connection;
@@ -21,7 +23,7 @@ public class JDBCSQLExecutor extends BlockingSQLExecutor {
         this.ownsConnection = ownsConnection;
     }
 
-    private static QueryResultRow copyCurrentRow(ResultSet resultSet) throws java.sql.SQLException {
+    static QueryResultRow copyCurrentRow(ResultSet resultSet) throws java.sql.SQLException {
         final var rowSnapshot = new HashMap<String, Object>();
         for (int i = 0; i < resultSet.getMetaData().getColumnCount(); i++) {
             final var columnName = resultSet.getMetaData().getColumnName(i + 1);
@@ -74,6 +76,74 @@ public class JDBCSQLExecutor extends BlockingSQLExecutor {
                 throw new SQLException(e);
             }
         }
+    }
+
+    private Connection getConnectionUnchecked() {
+        try {
+            return this.connection.get();
+        } catch (java.sql.SQLException e) {
+            throw new UncheckedSQLException(e);
+        }
+    }
+
+    private PreparedStatement preparedStatementUnchecked(Connection connection, String sql) {
+        try {
+            return connection.prepareStatement(sql);
+        } catch (java.sql.SQLException e) {
+            throw new UncheckedSQLException(e);
+        }
+    }
+
+    private ResultSet executeQueryUnchecked(PreparedStatement statement) {
+        try {
+            return statement.executeQuery();
+        } catch (java.sql.SQLException e) {
+            throw new UncheckedSQLException(e);
+        }
+    }
+
+    @Override
+    protected Stream<QueryResultRow> executeQueryIncrementally(InterpolatedSQLStatement sql) {
+        return Stream.of((Supplier<Connection>) this::getConnectionUnchecked)
+                .flatMap(connectionSupplier -> {
+                    final var connection = connectionSupplier.get();
+                    return Stream.of(connection).onClose(() -> {
+                        try {
+                            connection.close();
+                        } catch (java.sql.SQLException e) {
+                            throw new UncheckedSQLException(e);
+                        }
+                    });
+                })
+                .flatMap(connection -> {
+                    final var statement = preparedStatementUnchecked(connection, sql.getParameterizedScript());
+                    return Stream.of(statement).onClose(() -> {
+                        try {
+                            statement.close();
+                        } catch (java.sql.SQLException e) {
+                            throw new UncheckedSQLException(e);
+                        }
+                    });
+                })
+                .peek(statement -> {
+                    try {
+                        applyArgs(sql.getArgs(), statement);
+                    } catch (java.sql.SQLException e) {
+                        throw new UncheckedSQLException(e);
+                    }
+                })
+                .flatMap(statement -> {
+                    final var resultSet = executeQueryUnchecked(statement);
+                    return Stream.of(resultSet).onClose(() -> {
+                        try {
+                            resultSet.close();
+                        } catch (java.sql.SQLException e) {
+                            throw new UncheckedSQLException(e);
+                        }
+                    });
+                })
+                .map(ResultSetSpliterator::new)
+                .flatMap(resultSpliterator -> StreamSupport.stream(resultSpliterator, false));
     }
 
     // Execute Update
