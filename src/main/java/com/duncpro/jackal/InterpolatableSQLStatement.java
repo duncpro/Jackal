@@ -51,17 +51,21 @@ public final class InterpolatableSQLStatement {
 
     // Extension Functions
     public CompletableFuture<Void> executeUpdateAsync(SQLExecutorProvider database) {
-        return database.getExecutor().executeUpdateAsync(this.verifyFullyInterpolated());
+        final var verified = this.verifyFullyInterpolated();
+        return database.getExecutor().executeUpdateAsync(verified);
     }
     public void executeUpdate(SQLExecutorProvider database) throws SQLException {
-        database.getExecutor().executeUpdate(this.verifyFullyInterpolated());
+        final var verified = this.verifyFullyInterpolated();
+        database.getExecutor().executeUpdate(verified);
     }
 
     public CompletableFuture<Stream<QueryResultRow>> executeQueryAsync(SQLExecutorProvider database) {
-        return database.getExecutor().executeQueryAsync(this.verifyFullyInterpolated());
+        final var verified = this.verifyFullyInterpolated();
+        return database.getExecutor().executeQueryAsync(verified);
     }
     public Stream<QueryResultRow> executeQuery(SQLExecutorProvider database) throws SQLException {
-        return database.getExecutor().executeQuery(this.verifyFullyInterpolated());
+        final var verified = this.verifyFullyInterpolated();
+        return database.getExecutor().executeQuery(verified);
     }
 
     // Factory Functions

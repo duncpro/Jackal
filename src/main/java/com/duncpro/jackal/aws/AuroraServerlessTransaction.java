@@ -54,7 +54,7 @@ public class AuroraServerlessTransaction extends SQLTransaction {
     }
 
     @Override
-    public SQLExecutor getExecutor() {
+    protected SQLExecutor getExecutor() {
         return executor;
     }
 }
