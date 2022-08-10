@@ -1,6 +1,5 @@
 package com.duncpro.jackal
 
-import com.duncpro.jackal.InterpolatableSQLStatement.sql
 import kotlinx.coroutines.future.await
 import java.util.stream.Stream
 

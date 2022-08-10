@@ -81,7 +81,6 @@ public final class InterpolatableSQLStatement {
     }
 
     // Factory Functions
-
     public static InterpolatableSQLStatement sql(@Language("SQL") final String script) {
         Objects.requireNonNull(script);
         return new InterpolatableSQLStatement(new ParameterizableSQLStatement(script), emptyList());
