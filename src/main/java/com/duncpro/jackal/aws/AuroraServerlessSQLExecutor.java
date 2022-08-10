@@ -1,14 +1,14 @@
 package com.duncpro.jackal.aws;
 
-import com.duncpro.jackal.QueryResultRow;
-import com.duncpro.jackal.SQLException;
-import com.duncpro.jackal.SQLExecutor;
-import com.duncpro.jackal.InterpolatedSQLStatement;
+import com.duncpro.jackal.*;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 
 import static com.duncpro.jackal.aws.AuroraServerlessConversions.compileAWSRequest;
@@ -19,27 +19,28 @@ public class AuroraServerlessSQLExecutor extends SQLExecutor {
     @Nullable
     final String transactionId;
 
-    final AuroraServerlessClientBundle clients;
+    final RdsDataAsyncClient rdsDataAsyncClient;
     final AuroraServerlessCredentials credentials;
 
-    AuroraServerlessSQLExecutor(@Nullable final String transactionId, final AuroraServerlessClientBundle clients,
+    AuroraServerlessSQLExecutor(@Nullable final String transactionId, final RdsDataAsyncClient rdsDataAsyncClient,
                                 final AuroraServerlessCredentials credentials) {
         this.transactionId = transactionId;
-        this.clients = clients;
-        this.credentials = credentials;
+        this.rdsDataAsyncClient = Objects.requireNonNull(rdsDataAsyncClient);
+        this.credentials = Objects.requireNonNull(credentials);
     }
 
     @Override
     public CompletableFuture<Void> executeUpdateAsync(InterpolatedSQLStatement statement) {
         final var awsRequest = compileAWSRequest(this.credentials, statement, this.transactionId);
-        final var awsFuture = this.clients.rdsDataAsyncClient.executeStatement(awsRequest);
+        final var awsFuture = this.rdsDataAsyncClient.executeStatement(awsRequest);
         final var jackalFuture = new CompletableFuture<Void>();
         awsFuture.whenComplete((value, error) -> {
             boolean wasSuccessful = error == null;
             if (wasSuccessful) {
                 jackalFuture.complete(null);
             } else {
-                jackalFuture.completeExceptionally(new SQLException(error.getCause()));
+                final var cause = Throwables.unwrapCompletionException(error);
+                jackalFuture.completeExceptionally(cause instanceof SdkException ? new SQLException(cause) : cause);
             }
         });
         return jackalFuture;
@@ -47,25 +48,26 @@ public class AuroraServerlessSQLExecutor extends SQLExecutor {
 
     @Override
     public void executeUpdate(InterpolatedSQLStatement statement) throws SQLException {
-        final var request = compileAWSRequest(this.credentials, statement, this.transactionId);
         try {
-            this.clients.rdsDataClient.executeStatement(request);
-        } catch (SdkException e) {
-            throw new SQLException(e);
+            this.executeUpdateAsync(statement).join();
+        } catch (CompletionException e) {
+            Throwables.unwrapAndThrow(e, SQLException.class);
+            throw new AssertionError();
         }
     }
 
     @Override
     public CompletableFuture<Stream<QueryResultRow>> executeQueryAsync(InterpolatedSQLStatement statement) {
         final var awsRequest = compileAWSRequest(this.credentials, statement, this.transactionId);
-        final var awsFuture = this.clients.rdsDataAsyncClient.executeStatement(awsRequest);
+        final var awsFuture = this.rdsDataAsyncClient.executeStatement(awsRequest);
         final var jackalFuture = new CompletableFuture<Stream<QueryResultRow>>();
         awsFuture.whenComplete((response, error) -> {
             boolean wasSuccessful = error == null;
             if (wasSuccessful) {
                 jackalFuture.complete(extractRowsFromAWSResponse(response));
             } else {
-                jackalFuture.completeExceptionally(new SQLException(error.getCause()));
+                final var cause = Throwables.unwrapCompletionException(error);
+                jackalFuture.completeExceptionally(cause instanceof SdkException ? new SQLException(cause) : cause);
             }
         });
         return jackalFuture;
@@ -73,12 +75,11 @@ public class AuroraServerlessSQLExecutor extends SQLExecutor {
 
     @Override
     public Stream<QueryResultRow> executeQuery(InterpolatedSQLStatement statement) throws SQLException {
-        final var awsRequest = compileAWSRequest(this.credentials, statement, this.transactionId);
         try {
-            final var response = this.clients.rdsDataClient.executeStatement(awsRequest);
-            return extractRowsFromAWSResponse(response);
-        } catch (SdkException e) {
-            throw new SQLException(e);
+            return executeQueryAsync(statement).join();
+        } catch (CompletionException e) {
+            Throwables.unwrapAndThrow(e, SQLException.class);
+            throw new AssertionError();
         }
     }
 

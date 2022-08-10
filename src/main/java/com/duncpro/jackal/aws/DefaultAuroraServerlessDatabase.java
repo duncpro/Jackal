@@ -5,12 +5,11 @@ import software.amazon.awssdk.services.rdsdata.RdsDataClient;
 
 public class DefaultAuroraServerlessDatabase extends AuroraServerlessDatabase implements AutoCloseable {
     public DefaultAuroraServerlessDatabase(AuroraServerlessCredentials credentials) {
-        super(new AuroraServerlessClientBundle(RdsDataClient.create(), RdsDataAsyncClient.create()), credentials);
+        super(RdsDataAsyncClient.create(), credentials);
     }
 
     @Override
     public void close() {
-        super.clients.rdsDataClient.close();
-        super.clients.rdsDataClient.close();
+        super.rdsDataAsyncClient.close();
     }
 }

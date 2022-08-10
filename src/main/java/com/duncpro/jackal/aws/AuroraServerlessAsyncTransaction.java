@@ -3,9 +3,12 @@ package com.duncpro.jackal.aws;
 import com.duncpro.jackal.AsyncSQLTransaction;
 import com.duncpro.jackal.SQLException;
 import com.duncpro.jackal.SQLExecutor;
+import com.duncpro.jackal.Throwables;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rdsdata.model.CommitTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
@@ -14,7 +17,7 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
     private volatile boolean isCommitted = false;
 
     AuroraServerlessAsyncTransaction(AuroraServerlessSQLExecutor executor) {
-        this.executor = executor;
+        this.executor = Objects.requireNonNull(executor);
     }
 
     @Override
@@ -25,7 +28,7 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
                 .transactionId(executor.transactionId)
                 .build();
 
-        final var awsFuture = this.executor.clients.rdsDataAsyncClient.commitTransaction(request);
+        final var awsFuture = this.executor.rdsDataAsyncClient.commitTransaction(request);
         final var jackalFuture = new CompletableFuture<Void>();
 
         awsFuture.whenComplete((response, error) -> {
@@ -33,7 +36,8 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
                 isCommitted = true;
                 jackalFuture.complete(null);
             } else {
-                jackalFuture.completeExceptionally(new SQLException(error));
+                final var cause = Throwables.unwrapCompletionException(error);
+                jackalFuture.completeExceptionally(cause instanceof SdkException ? new SQLException(cause) : cause);
             }
         });
 
@@ -47,14 +51,15 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
                 .transactionId(this.executor.transactionId)
                 .build();
 
-        final var awsFuture = this.executor.clients.rdsDataAsyncClient.rollbackTransaction(request);
+        final var awsFuture = this.executor.rdsDataAsyncClient.rollbackTransaction(request);
         final var jackalFuture = new CompletableFuture<Void>();
 
         awsFuture.whenComplete((response, error) -> {
             if (error == null) {
                 jackalFuture.complete(null);
             } else {
-                jackalFuture.completeExceptionally(new SQLException(error));
+                final var cause = Throwables.unwrapCompletionException(error);
+                jackalFuture.completeExceptionally(cause instanceof SdkException ? new SQLException(cause) : cause);
             }
         });
 

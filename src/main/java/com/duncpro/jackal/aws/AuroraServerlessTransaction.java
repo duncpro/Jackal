@@ -3,16 +3,20 @@ package com.duncpro.jackal.aws;
 import com.duncpro.jackal.SQLException;
 import com.duncpro.jackal.SQLExecutor;
 import com.duncpro.jackal.SQLTransaction;
+import com.duncpro.jackal.Throwables;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rdsdata.model.CommitTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;
+
+import java.util.Objects;
+import java.util.concurrent.CompletionException;
 
 public class AuroraServerlessTransaction extends SQLTransaction {
     private volatile boolean isCommitted = false;
     private final AuroraServerlessSQLExecutor executor;
 
     public AuroraServerlessTransaction(final AuroraServerlessSQLExecutor executor) {
-        this.executor = executor;
+        this.executor = Objects.requireNonNull(executor);
     }
 
     @Override
@@ -24,9 +28,10 @@ public class AuroraServerlessTransaction extends SQLTransaction {
                 .build();
 
         try {
-            this.executor.clients.rdsDataClient.commitTransaction(request);
-        } catch (SdkException e) {
-            throw new SQLException(e);
+            this.executor.rdsDataAsyncClient.commitTransaction(request).join();
+        } catch (CompletionException e) {
+            Throwables.unwrapAndThrow(e, SdkException.class, SQLException::new);
+            throw new AssertionError();
         }
 
         isCommitted = true;
@@ -40,9 +45,10 @@ public class AuroraServerlessTransaction extends SQLTransaction {
                 .build();
 
         try {
-            this.executor.clients.rdsDataClient.rollbackTransaction(request);
-        } catch (SdkException e) {
-            throw new SQLException(e);
+            this.executor.rdsDataAsyncClient.rollbackTransaction(request).join();
+        } catch (CompletionException e) {
+            Throwables.unwrapAndThrow(e, SdkException.class, SQLException::new);
+            throw new AssertionError();
         }
     }
 

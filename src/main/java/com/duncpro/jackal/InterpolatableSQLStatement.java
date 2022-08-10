@@ -5,6 +5,7 @@ import org.intellij.lang.annotations.Language;
 import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -51,25 +52,30 @@ public final class InterpolatableSQLStatement {
 
     // Extension Functions
     public CompletableFuture<Void> executeUpdateAsync(SQLExecutorProvider database) {
+        Objects.requireNonNull(database);
         final var verified = this.verifyFullyInterpolated();
         return database.getExecutor().executeUpdateAsync(verified);
     }
     public void executeUpdate(SQLExecutorProvider database) throws SQLException {
+        Objects.requireNonNull(database);
         final var verified = this.verifyFullyInterpolated();
         database.getExecutor().executeUpdate(verified);
     }
 
     public CompletableFuture<Stream<QueryResultRow>> executeQueryAsync(SQLExecutorProvider database) {
+        Objects.requireNonNull(database);
         final var verified = this.verifyFullyInterpolated();
         return database.getExecutor().executeQueryAsync(verified);
     }
 
     public Stream<QueryResultRow> executeQuery(SQLExecutorProvider database) throws SQLException {
+        Objects.requireNonNull(database);
         final var verified = this.verifyFullyInterpolated();
         return database.getExecutor().executeQuery(verified);
     }
 
     public Stream<QueryResultRow> executeQueryIncrementally(SQLExecutorProvider database) {
+        Objects.requireNonNull(database);
         final var verified = this.verifyFullyInterpolated();
         return database.getExecutor().executeQueryIncrementally(verified);
     }
@@ -77,6 +83,7 @@ public final class InterpolatableSQLStatement {
     // Factory Functions
 
     public static InterpolatableSQLStatement sql(@Language("SQL") final String script) {
+        Objects.requireNonNull(script);
         return new InterpolatableSQLStatement(new ParameterizableSQLStatement(script), emptyList());
     }
 
