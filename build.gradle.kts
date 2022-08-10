@@ -8,7 +8,11 @@ plugins {
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-21"
+version = "1.0-SNAPSHOT-22"
+
+jacoco {
+    toolVersion = "0.8.7"
+}
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
