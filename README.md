@@ -114,3 +114,11 @@ The [Official RDS Data API Client Library](https://github.com/awslabs/rds-data-a
   - The parameterization syntax is too verbose, whereas the original JDBC
     syntax is much more concise.
   - It provides no facilities for local testing/development.
+
+## Jackal's Drawbacks
+This library prioritizes ergonomics, simplicity, and correctness, over memory efficiency and CPU efficiency.
+Using Jackal will result in a higher memory and CPU footprint when compared to raw JDBC
+or Aurora calls. As such this library may not be suitable for use in projects where extremely low-latency is
+necessary. For most cases, including typical web applications, this latency should be negligible.
+If performance is a critical component of your application, consider using a different library, or a different
+programming language altogether.
