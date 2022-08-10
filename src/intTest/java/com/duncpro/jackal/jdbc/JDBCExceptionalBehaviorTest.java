@@ -14,8 +14,6 @@ import static org.junit.Assert.assertTrue;
 public class JDBCExceptionalBehaviorTest extends ExceptionalBehaviorTest {
     private ExecutorService statementExecutor;
 
-    private ExecutorService transactionE
-
     @Before
     public void setup() {
         statementExecutor = Executors.newSingleThreadExecutor();

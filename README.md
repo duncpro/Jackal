@@ -57,7 +57,7 @@ are fetched on an as-needed basis. This variant should be used for potentially
 large query result sets. Not all client implementations support this method and therefore
 it should only be used when absolutely necessary. The JDBC implementation supports this method, but
 the RDS Aurora implementation will not, and will therefore throw `UnsupportedOperationException`.
-The stream returned from this method is *resourceful* and must be closed explicitly with a call tp
+The stream returned from this method is *resourceful* and must be closed explicitly with a call to
 `Stream#close` or implicity with a try-with-resources block.
 ### JDBC-like Parameterization
 Jackal supports statement parameterization using JDBC-like syntax.
