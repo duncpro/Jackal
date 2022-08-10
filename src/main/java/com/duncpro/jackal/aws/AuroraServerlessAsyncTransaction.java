@@ -3,7 +3,7 @@ package com.duncpro.jackal.aws;
 import com.duncpro.jackal.AsyncSQLTransaction;
 import com.duncpro.jackal.SQLException;
 import com.duncpro.jackal.SQLExecutor;
-import com.duncpro.jackal.Throwables;
+import com.duncpro.jackal.util.Throwables;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rdsdata.model.CommitTransactionRequest;
 import software.amazon.awssdk.services.rdsdata.model.RollbackTransactionRequest;

@@ -1,6 +1,7 @@
 package com.duncpro.jackal.aws;
 
 import com.duncpro.jackal.*;
+import com.duncpro.jackal.util.Throwables;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rdsdata.RdsDataAsyncClient;
 
