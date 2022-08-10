@@ -106,7 +106,7 @@ public class JDBCSQLExecutor extends BlockingSQLExecutor {
     @Override
     protected Stream<QueryResultRow> executeQueryIncrementally(InterpolatedSQLStatement sql) {
         return Stream.of((Supplier<Connection>) this::getConnectionUnchecked)
-                .flatMap(connectionSupplier -> {
+                .<Connection>flatMap(connectionSupplier -> {
                     final var connection = connectionSupplier.get();
                     return Stream.of(connection).onClose(() -> {
                         try {

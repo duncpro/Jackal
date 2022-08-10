@@ -3,6 +3,7 @@ package com.duncpro.jackal;
 import org.intellij.lang.annotations.Language;
 
 import javax.annotation.concurrent.Immutable;
+import java.nio.channels.AsynchronousFileChannel;
 import java.util.List;
 
 @Immutable

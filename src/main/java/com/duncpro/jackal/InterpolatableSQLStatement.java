@@ -86,6 +86,4 @@ public final class InterpolatableSQLStatement {
         Objects.requireNonNull(script);
         return new InterpolatableSQLStatement(new ParameterizableSQLStatement(script), emptyList());
     }
-
-
 }
