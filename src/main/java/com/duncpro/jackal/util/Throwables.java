@@ -38,9 +38,9 @@ public class Throwables {
                                                                                  Function<I, O> map) throws O {
         final var cause = e.getCause();
         if (cause == null) throw e;
+        if (input.isAssignableFrom(cause.getClass())) throw map.apply((I) cause);
         if (cause instanceof RuntimeException) throw (RuntimeException) cause;
         if (cause instanceof Error) throw (Error) cause;
-        if (input.isAssignableFrom(cause.getClass())) throw map.apply((I) cause);
         throw e;
     }
 }
