@@ -1,7 +1,10 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     java
     jacoco
     `maven-publish`
+    kotlin("jvm") version "1.7.10"
 }
 
 group = "com.duncpro"
@@ -28,6 +31,7 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.3.9")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("org.jetbrains:annotations:21.0.1")
 
@@ -97,5 +101,11 @@ publishing {
 java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+tasks.withType<KotlinCompile> {
+    kotlinOptions {
+        freeCompilerArgs += listOf("-Xcontext-receivers")
     }
 }

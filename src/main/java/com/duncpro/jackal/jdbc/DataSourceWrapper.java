@@ -1,12 +1,10 @@
 package com.duncpro.jackal.jdbc;
 
-import com.duncpro.jackal.SQLDatabase;
-import com.duncpro.jackal.SQLException;
-import com.duncpro.jackal.SQLExecutor;
-import com.duncpro.jackal.SQLTransaction;
+import com.duncpro.jackal.*;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public class DataSourceWrapper extends SQLDatabase {
@@ -39,6 +37,20 @@ public class DataSourceWrapper extends SQLDatabase {
         }
 
         return new JDBCTransaction(statementExecutor, connection);
+    }
+
+    @Override
+    public CompletableFuture<AsyncSQLTransaction> startTransactionAsync() {
+        final var future = new CompletableFuture<AsyncSQLTransaction>();
+        statementExecutor.execute(() -> {
+            try {
+                final var asyncTransaction = wrapBlockingTransaction(this.startTransaction(), statementExecutor);
+                future.complete(asyncTransaction);
+            } catch (SQLException e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
     }
 
     private Connection getAutoCommitConnection() throws java.sql.SQLException {

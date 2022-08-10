@@ -68,11 +68,13 @@ sql("INSERT INTO person VALUES (?, ?, ?);")
         .executeUpdate(db)
 ```
 
-### Transaction API
+### Blocking Transaction API
 Transactions must be explicitly committed using the `commit` method.
 Rollbacks however are implicit. If `SQLTransaction#close` is called before
 `SQLTransaction#commit`, like in the case of a mid-transaction exception, then
 the transaction will be automatically rolled back.
+
+All methods of `SQLTransaction` block the current thread.
 ```java
 try (final var transaction = db.startTransaction()) {
     sql("INSERT INTO Person VALUES (?);")
@@ -81,6 +83,22 @@ try (final var transaction = db.startTransaction()) {
     transaction.commit();
 } catch (com.duncpro.jackal.SQLException e) {
     e.printStackTrace();
+}
+```
+
+### Suspending Transaction API
+When using Kotlin it is possible to perform SQL transactions without blocking a platform thread.
+This is accomplished using Kotlin coroutines. The Suspending Transaction API is similar to
+the Blocking Transaction API in that commits are explicit and rollbacks are implicit.
+```kotlin
+val database: SQLDatabase = TODO()
+database.executeTransaction {
+    sql("INSERT INTO Person VALUES (?);")
+        .withArguments("Bob")
+        .executeUpdate() // The executeUpdate() suspending extension receives SQLExecutorProvider
+                         // provider as a context-parameter. SQLDatabase.executeTransaction invokes
+                         // the given lambda function with an SQLExecutorProvider in the context.
+    commit()
 }
 ```
 ### Exceptions
