@@ -18,7 +18,7 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
     }
 
     @Override
-    public CompletableFuture<Void> commit() {
+    public CompletableFuture<Void> commitAsync() {
         final var request = CommitTransactionRequest.builder()
                 .resourceArn(executor.credentials.dbArn)
                 .secretArn(executor.credentials.dbSecretArn)
@@ -63,7 +63,7 @@ public class AuroraServerlessAsyncTransaction extends AsyncSQLTransaction  {
 
 
     @Override
-    public CompletableFuture<Void> close() {
+    public CompletableFuture<Void> closeAsync() {
         if (isCommitted) return CompletableFuture.completedFuture(null);
         return rollback();
     }

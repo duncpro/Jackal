@@ -26,7 +26,7 @@ public abstract class SQLDatabase extends SQLExecutorProvider {
     protected static AsyncSQLTransaction wrapBlockingTransaction(SQLTransaction blockingTransaction, Executor transactionExecutor) {
         return new AsyncSQLTransaction() {
             @Override
-            public CompletableFuture<Void> commit() {
+            public CompletableFuture<Void> commitAsync() {
                 final var future = new CompletableFuture<Void>();
                 transactionExecutor.execute(() -> {
                     try {
@@ -40,7 +40,7 @@ public abstract class SQLDatabase extends SQLExecutorProvider {
             }
 
             @Override
-            public CompletableFuture<Void> close() {
+            public CompletableFuture<Void> closeAsync() {
                 final var future = new CompletableFuture<Void>();
                 transactionExecutor.execute(() -> {
                     try {
