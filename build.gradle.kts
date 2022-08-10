@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-17"
+version = "1.0-SNAPSHOT-18"
 
 val intTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
@@ -107,5 +107,6 @@ java {
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs += listOf("-Xcontext-receivers")
+        jvmTarget = "11"
     }
 }
