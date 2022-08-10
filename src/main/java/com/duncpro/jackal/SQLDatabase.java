@@ -6,13 +6,12 @@ import java.util.concurrent.Executor;
 public abstract class SQLDatabase extends SQLExecutorProvider {
     public abstract SQLTransaction startTransaction() throws SQLException;
 
-
     public abstract CompletableFuture<AsyncSQLTransaction> startTransactionAsync();
 
     /**
      * Returns an auto-committing sql executor.
-     * Any {@link InterpolatableSQLStatement} which is executed by the {@link SQLExecutor} returned by this function
-     * will be performed in a single-statement auto-committed transaction.
+     * Any {@link InterpolatableSQLStatement} which is executed by this {@link SQLExecutor} will be performed in a
+     * single-statement auto-committed transaction.
      */
     @Override
     protected abstract SQLExecutor getExecutor();
