@@ -9,9 +9,12 @@ public abstract class SQLDatabase extends SQLExecutorProvider {
     public abstract CompletableFuture<AsyncSQLTransaction> startTransactionAsync();
 
     /**
-     * Returns an auto-committing sql executor.
-     * Any {@link InterpolatableSQLStatement} which is executed by this {@link SQLExecutor} will be performed in a
-     * single-statement auto-committed transaction.
+     * Returns a new, single-statement, auto-committing, auto-closing {@link SQLExecutor}.
+     * It may be possible to execute multiple statements when using some implementations of
+     * {@link SQLDatabase}, but such an action should never be undertaken, since the {@link SQLExecutor}
+     * can auto-close at any time after at least one statement is executed. To mitigate this foot-gun,
+     * this method is explicitly marked as protected. This function should never be used in application-level
+     * code. Instead {@link InterpolatableSQLStatement#executeQuery(SQLExecutorProvider)} should be used instead.
      */
     @Override
     protected abstract SQLExecutor getExecutor();
