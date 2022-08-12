@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-22"
+version = "1.0-SNAPSHOT-23"
 
 jacoco {
     toolVersion = "0.8.7"
@@ -110,7 +110,6 @@ java {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
-        freeCompilerArgs += listOf("-Xcontext-receivers")
         jvmTarget = "11"
     }
 }

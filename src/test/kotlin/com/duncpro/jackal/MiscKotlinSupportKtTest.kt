@@ -1,5 +1,6 @@
 package com.duncpro.jackal
 
+import com.duncpro.jackal.InterpolatableSQLStatement.sql
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
