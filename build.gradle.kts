@@ -4,11 +4,11 @@ plugins {
     java
     jacoco
     `maven-publish`
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.6.21"
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-23"
+version = "1.0-SNAPSHOT-24"
 
 jacoco {
     toolVersion = "0.8.7"
@@ -35,7 +35,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.3.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-jdk8:1.6.4")
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("org.jetbrains:annotations:21.0.1")
 
