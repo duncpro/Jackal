@@ -1,6 +1,7 @@
 package com.duncpro.jackal;
 
 import javax.annotation.concurrent.Immutable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -9,7 +10,7 @@ public class MapResultRow implements QueryResultRow {
     private final Map<String, Object> columnValueMap;
 
     public MapResultRow(Map<String, Object> columnValueMap) {
-        this.columnValueMap = Map.copyOf(columnValueMap);
+        this.columnValueMap = new HashMap<>(columnValueMap);
     }
 
     @Override
