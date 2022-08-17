@@ -1,5 +1,7 @@
 package com.duncpro.jackal;
 
+import com.duncpro.jackal.util.ReflectionUtils;
+
 import javax.annotation.concurrent.Immutable;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +24,8 @@ public class MapResultRow implements QueryResultRow {
         if (rawValue == null) return Optional.empty();
         final T casted;
         try {
-            casted = javaType.cast(rawValue);
+            //noinspection unchecked
+            casted = (T) ReflectionUtils.box(javaType).cast(rawValue);
         } catch (ClassCastException e) {
             throw new IllegalArgumentException("The requested data type: \"" + javaType.getSimpleName() + "\" does not" +
                     " match the data type returned by the SQL client implementation.", e);
