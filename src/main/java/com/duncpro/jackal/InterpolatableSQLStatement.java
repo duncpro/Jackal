@@ -4,6 +4,7 @@ import org.intellij.lang.annotations.Language;
 
 import javax.annotation.concurrent.Immutable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +21,9 @@ public final class InterpolatableSQLStatement {
 
     InterpolatableSQLStatement(final ParameterizableSQLStatement sql, final List<Object> args) {
         this.sql = sql;
-        this.args = copyOf(args);
+        // Cannot be replaced, without disallowing null values
+        //noinspection Java9CollectionFactory
+        this.args = Collections.unmodifiableList(new ArrayList<>(args));
     }
 
     /**
