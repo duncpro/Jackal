@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.duncpro"
-version = "1.0-SNAPSHOT-26"
+version = "1.0-SNAPSHOT-27"
 
 jacoco {
     toolVersion = "0.8.7"

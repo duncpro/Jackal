@@ -78,7 +78,10 @@ suspend inline fun <T> SQLDatabase.executeTransaction(block: AsyncSQLTransaction
     }
 }
 
-class AsyncSQLTransactionContext constructor(private val transaction: AsyncSQLTransaction) {
+class AsyncSQLTransactionContext constructor(
+    @Suppress("MemberVisibilityCanBePrivate")
+    val transaction: AsyncSQLTransaction
+) {
     /**
      * Executes the update represented by this [InterpolatableSQLStatement] in the context of the [AsyncSQLTransaction]
      * represented by the current scope. This function is a more ergonomic shortcut to
