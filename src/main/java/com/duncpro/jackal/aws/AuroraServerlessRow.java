@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class AuroraServerlessRow implements QueryResultRow {
     private final Map<String, Field> awsRow;
@@ -48,7 +49,11 @@ public class AuroraServerlessRow implements QueryResultRow {
             throw new IllegalArgumentException("Deserializing " + javaType.getName() + " is unsupported.");
         }
 
+        if (unwrappedValue == null) throw new IllegalArgumentException("No column of name \"" + columnName + "\"" +
+                " exists in result row. Expected any of the following instead: " +
+                String.join(", ", awsRow.keySet()));
+
         // Might still be null, AWS behaving strangely
-        return Optional.ofNullable(unwrappedValue);
+        return Optional.of(unwrappedValue);
     }
 }
