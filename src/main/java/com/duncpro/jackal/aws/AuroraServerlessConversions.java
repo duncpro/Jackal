@@ -3,9 +3,11 @@ package com.duncpro.jackal.aws;
 import com.duncpro.jackal.QueryResultRow;
 import com.duncpro.jackal.InterpolatedSQLStatement;
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.rdsdata.model.DecimalReturnType;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementRequest;
 import software.amazon.awssdk.services.rdsdata.model.ExecuteStatementResponse;
 import software.amazon.awssdk.services.rdsdata.model.Field;
+import software.amazon.awssdk.services.rdsdata.model.ResultSetOptions;
 import software.amazon.awssdk.services.rdsdata.model.SqlParameter;
 
 import javax.annotation.Nullable;
@@ -32,6 +34,9 @@ public final class AuroraServerlessConversions {
                 .secretArn(credentials.dbSecretArn)
                 .sql(compileSQL(statement))
                 .includeResultMetadata(true)
+                .resultSetOptions(ResultSetOptions.builder()
+                        .decimalReturnType(DecimalReturnType.DOUBLE_OR_LONG)
+                        .build())
                 .parameters(compileArgs(statement.getArgs()));
 
         if (transactionId != null)
