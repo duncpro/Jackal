@@ -4,6 +4,7 @@ import com.duncpro.jackal.QueryResultRow;
 import software.amazon.awssdk.services.rdsdata.model.Field;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -12,7 +13,7 @@ public class AuroraServerlessRow implements QueryResultRow {
     private final Map<String, Field> awsRow;
 
     public AuroraServerlessRow(Map<String, Field> awsRow) {
-        this.awsRow = Map.copyOf(awsRow);
+        this.awsRow = new HashMap<>(awsRow);
     }
 
     @Override
