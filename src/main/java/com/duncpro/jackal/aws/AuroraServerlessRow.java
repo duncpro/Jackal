@@ -48,6 +48,7 @@ public class AuroraServerlessRow implements QueryResultRow {
             throw new IllegalArgumentException("Deserializing " + javaType.getName() + " is unsupported.");
         }
 
-        return Optional.of(unwrappedValue);
+        // Might still be null, AWS behaving strangely
+        return Optional.ofNullable(unwrappedValue);
     }
 }
