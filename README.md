@@ -16,7 +16,7 @@ final SQLDatabase db = new AuroraServerlessDatabase(/* */);
 ```
 ### Using Jackal with JDBC
 In development/testing scenarios you're likely using a locally hosted or in-memory database.
-Jackal provides a second implementation of `SQLException`
+Jackal provides a second implementation of `SQLDatabase`
 which wraps a standard JDBC `DataSource`. 
 ```java
 final SQLDatabase db = new DataSourceWrapper(/* */);
